@@ -224,10 +224,8 @@ export default function BooksPage() {
               Are you sure you want to delete the book "{bookToDelete?.title}"? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={closeDeleteDialog}>
-              Cancel
-            </Button>
+          <DialogFooter className="flex justify-end space-x-2">
+            <button onClick={closeDeleteDialog } className="btn mx-auto mt-5 variant-ghost">Cancel</button>
             <Button variant="destructive" onClick={confirmDelete}>
               Delete
             </Button>
