@@ -3,11 +3,10 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
 import { OCRSection } from "@/components/ocr-section"
 import { ReviewSection } from "@/components/review-section"
+import ProcessProgressBar from "@/components/ProcessProgressBar"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { cn } from "@/lib/utils"
 
 const processingSteps = [
   { id: "OCR", title: "OCR" },
@@ -18,62 +17,75 @@ const processingSteps = [
 ]
 
 export default function ProcessBookPage({ params }: { params: { id: string } }) {
-  const [activeStep, setActiveStep] = useState("OCR")
+  const [activeStep, setActiveStep] = useState(processingSteps[0].id)
+  const [completedSteps, setCompletedSteps] = useState<string[]>([])
   const router = useRouter()
 
-  const isReviewStep = activeStep === "Review"
+  const currentStepIndex = processingSteps.findIndex((step) => step.id === activeStep)
 
-  const handleBackFromReview = () => {
-    setActiveStep(processingSteps[processingSteps.length - 2].id)
+  const handleNext = () => {
+    if (currentStepIndex < processingSteps.length - 1) {
+      const newCompletedSteps = [...completedSteps, activeStep]
+      setCompletedSteps(newCompletedSteps)
+      setActiveStep(processingSteps[currentStepIndex + 1].id)
+    }
   }
 
+  const handlePrevious = () => {
+    if (currentStepIndex > 0) {
+      const newCompletedSteps = completedSteps.filter((step) => step !== processingSteps[currentStepIndex - 1].id)
+      setCompletedSteps(newCompletedSteps)
+      setActiveStep(processingSteps[currentStepIndex - 1].id)
+    }
+  }
+
+  const isReviewStep = activeStep === processingSteps[processingSteps.length - 1].id
+
   if (isReviewStep) {
-    return <ReviewSection onBack={handleBackFromReview} bookId={params.id} />
+    return <ReviewSection onBack={handlePrevious} bookId={params.id} />
   }
 
   return (
-    <div className="h-screen flex">
-      <div className="w-80 bg-gray-800 p-4 border-r border-gray-700 overflow-y-auto">
-        <Button variant="ghost" onClick={() => router.push("/dashboard/books")} className="mb-4 w-full justify-start">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
+      <div className="container mx-auto px-4 py-8">
+        <Button variant="ghost" onClick={() => router.push("/dashboard/books")} className="mb-4">
           <ChevronLeft className="mr-2 h-4 w-4" />
           Back to All Books
         </Button>
-        <h2 className="text-xl font-bold mb-4">Processing Steps</h2>
-        <nav>
-          <ul className="space-y-3">
-            {processingSteps.map((step) => (
-              <li key={step.id}>
-                <Button
-                  variant={activeStep === step.id ? "secondary" : "ghost"}
-                  className={cn(
-                    "w-full justify-between text-left px-5 py-3 h-auto text-base",
-                    activeStep === step.id ? "bg-gray-700 text-white" : "text-gray-300",
-                  )}
-                  onClick={() => setActiveStep(step.id)}
-                >
-                  <span>{step.title}</span>
-                  {activeStep === step.id && <ChevronRight className="h-4 w-4" />}
-                </Button>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </div>
+        <h1 className="text-4xl font-bold mb-6 text-center">Process Book: {params.id}</h1>
+        <ProcessProgressBar currentStep={activeStep} completedSteps={completedSteps} />
 
-      <div className="flex-1 p-6 overflow-y-auto">
-        <h1 className="text-3xl font-bold mb-6">Process Book: {params.id}</h1>
-        <Separator className="my-4" />
+        <div className="mt-12 bg-gray-800 rounded-lg shadow-lg p-8 animate-fadeIn">
+          <h2 className="text-2xl font-semibold mb-6 text-center">
+            {processingSteps.find((step) => step.id === activeStep)?.title}
+          </h2>
+          {activeStep === "OCR" && <OCRSection />}
+          {/* Placeholder for other steps */}
+          {(activeStep === "ChapterFootnote" || activeStep === "NER" || activeStep === "Diacritics") && (
+            <div className="text-center py-8">
+              <p className="text-xl">This feature is not yet implemented.</p>
+            </div>
+          )}
+        </div>
 
-        {activeStep === "OCR" && <OCRSection />}
-        {/* Placeholder for other steps */}
-        {(activeStep === "ChapterFootnote" || activeStep === "NER" || activeStep === "Diacritics") && (
-          <div className="text-center py-8">
-            <h2 className="text-2xl font-semibold mb-4">
-              {processingSteps.find((step) => step.id === activeStep)?.title}
-            </h2>
-            <p>This feature is not yet implemented.</p>
-          </div>
-        )}
+        <div className="mt-8 flex justify-between">
+          <Button
+            onClick={handlePrevious}
+            disabled={currentStepIndex === 0}
+            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition-all duration-200 ease-in-out transform hover:scale-105"
+          >
+            <ChevronLeft className="mr-2 h-4 w-4" />
+            Previous
+          </Button>
+          <Button
+            onClick={handleNext}
+            disabled={currentStepIndex === processingSteps.length - 1}
+            className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full transition-all duration-200 ease-in-out transform hover:scale-105"
+          >
+            Next
+            <ChevronRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
       </div>
     </div>
   )
