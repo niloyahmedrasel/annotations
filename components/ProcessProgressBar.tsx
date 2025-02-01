@@ -40,7 +40,7 @@ const ProcessProgressBar: React.FC<ProcessProgressBarProps> = ({ currentStep, co
                     isCompleted
                       ? "border-green-500 bg-green-500 bg-opacity-20"
                       : isCurrent
-                        ? "border-yellow-500 bg-yellow-500 bg-opacity-20 animate-pulse"
+                        ? "border-yellow-500 bg-yellow-500 bg-opacity-20 animate-smooth-pulse"
                         : "border-gray-600 bg-gray-800"
                   }`}
                 >
@@ -67,4 +67,19 @@ const ProcessProgressBar: React.FC<ProcessProgressBarProps> = ({ currentStep, co
 }
 
 export default ProcessProgressBar
+
+const styles = `
+  @keyframes smooth-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  .animate-smooth-pulse {
+    animation: smooth-pulse 2s ease-in-out infinite;
+  }
+`
+
+const styleSheet = document.createElement("style")
+styleSheet.type = "text/css"
+styleSheet.innerText = styles
+document.head.appendChild(styleSheet)
 
