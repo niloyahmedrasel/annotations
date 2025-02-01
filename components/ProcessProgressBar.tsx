@@ -33,30 +33,43 @@ const ProcessProgressBar: React.FC<ProcessProgressBarProps> = ({ currentStep, co
           {steps.map((step, index) => {
             const isCompleted = completedSteps.includes(step.id)
             const isCurrent = step.id === currentStep
+            const labelPosition = ["ChapterFootnote", "Diacritics"].includes(step.id) ? "top" : "bottom"
+
             return (
               <div key={step.id} className="flex flex-col items-center">
+                {labelPosition === "top" && (
+                  <div
+                    className={`mb-2 text-sm font-bold ${
+                      isCurrent ? "text-amber-400" : isCompleted ? "text-green-500" : "text-gray-400"
+                    }`}
+                  >
+                    {step.label}
+                  </div>
+                )}
                 <div
                   className={`w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 ease-in-out border-2 ${
                     isCompleted
-                      ? "border-green-500 bg-green-500 bg-opacity-20"
+                      ? "border-green-500 bg-green-500"
                       : isCurrent
-                        ? "border-yellow-500 bg-yellow-500 bg-opacity-20 animate-smooth-pulse"
+                        ? "border-amber-400 bg-amber-400 bg-opacity-20 animate-smooth-pulse"
                         : "border-gray-600 bg-gray-800"
                   }`}
                 >
                   {isCompleted ? (
-                    <Check className="w-8 h-8 text-green-500" />
+                    <Check className="w-8 h-8 text-white" />
                   ) : (
-                    <step.icon className={`w-8 h-8 ${isCurrent ? "text-yellow-500" : "text-gray-400"}`} />
+                    <step.icon className={`w-8 h-8 ${isCurrent ? "text-amber-400" : "text-gray-400"}`} />
                   )}
                 </div>
-                <div
-                  className={`mt-2 text-sm font-bold ${
-                    isCurrent ? "text-yellow-500" : isCompleted ? "text-green-500" : "text-gray-400"
-                  }`}
-                >
-                  {step.label}
-                </div>
+                {labelPosition === "bottom" && (
+                  <div
+                    className={`mt-2 text-sm font-bold ${
+                      isCurrent ? "text-amber-400" : isCompleted ? "text-green-500" : "text-gray-400"
+                    }`}
+                  >
+                    {step.label}
+                  </div>
+                )}
               </div>
             )
           })}
@@ -75,6 +88,9 @@ const styles = `
   }
   .animate-smooth-pulse {
     animation: smooth-pulse 2s ease-in-out infinite;
+  }
+  .flex-col-reverse {
+    flex-direction: column-reverse;
   }
 `
 
