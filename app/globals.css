@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 226 23% 13%;
+  --foreground: 0 0% 100%;
+
+  --card: 226 23% 13%;
+  --card-foreground: 0 0% 100%;
+
+  --popover: 226 23% 13%;
+  --popover-foreground: 0 0% 100%;
+
+  --primary: 234 88% 67%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 168 84% 51%;
+  --secondary-foreground: 0 0% 100%;
+
+  --muted: 226 23% 23%;
+  --muted-foreground: 215 20.2% 65.1%;
+
+  --accent: 226 23% 23%;
+  --accent-foreground: 0 0% 100%;
+
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 226 23% 23%;
+  --input: 226 23% 23%;
+  --ring: 234 88% 67%;
+
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: 226 23% 13%;
+  --foreground: 0 0% 100%;
+}
+
+/* Custom styles for the book processing page */
+.processing-step-button {
+  @apply w-full text-left px-4 py-2 rounded transition-colors;
+}
+
+.processing-step-button:hover {
+  @apply bg-gray-700;
+}
+
+.processing-step-button.active {
+  @apply bg-gray-700 text-white;
+}
+
+.pdf-viewer-placeholder {
+  @apply bg-gray-700 rounded-lg p-4 flex items-center justify-center h-full;
+}
+
+.content-editor {
+  @apply w-full h-full p-2 bg-gray-700 text-white rounded-lg resize-none;
+}
+
+/* LaTeX-style editor styles */
+.latex-editor {
+  font-family: "Courier New", Courier, monospace;
+  line-height: 1.5;
+  tab-size: 4;
+}
+
+.latex-editor::selection {
+  background-color: rgba(100, 100, 100, 0.3);
+}
+
+/* Custom scrollbar for the LaTeX editor */
+.latex-editor::-webkit-scrollbar {
+  width: 12px;
+}
+
+.latex-editor::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+.latex-editor::-webkit-scrollbar-thumb {
+  background-color: #333;
+  border-radius: 6px;
+  border: 3px solid #1a1a1a;
+}
+
+.latex-editor::-webkit-scrollbar-thumb:hover {
+  background-color: #555;
+}
+
