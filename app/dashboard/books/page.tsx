@@ -18,6 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { useAuth } from "@/components/auth-provider"
 
 interface Book {
   id: string
@@ -60,6 +61,7 @@ const initialBooks: Book[] = [
 ]
 
 export default function BooksPage() {
+  const { user } = useAuth()
   const [books, setBooks] = useState<Book[]>(initialBooks)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [bookToDelete, setBookToDelete] = useState<Book | null>(null)
@@ -85,9 +87,11 @@ export default function BooksPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Books</h1>
-        <Button asChild>
-          <Link href="/dashboard/books/new">Add New Book</Link>
-        </Button>
+        {user?.role === "Super Admin" && (
+          <Button asChild>
+            <Link href="/dashboard/books/new">Add New Book</Link>
+          </Button>
+        )}
       </div>
       <div className="flex items-center space-x-4">
         <div className="flex-1">
@@ -225,7 +229,9 @@ export default function BooksPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex justify-end space-x-2">
-            <button onClick={closeDeleteDialog } className="btn mx-auto mt-5 variant-ghost">Cancel</button>
+            <Button variant="outline" onClick={closeDeleteDialog}>
+              Cancel
+            </Button>
             <Button variant="destructive" onClick={confirmDelete}>
               Delete
             </Button>

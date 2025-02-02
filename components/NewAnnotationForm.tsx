@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { X, Plus, Trash2 } from "lucide-react"
+import { useSearchParams } from "next/navigation"
 
 const categories = ["Category 1", "Category 2", "Category 3"]
 const subCategories = ["Sub-Category 1", "Sub-Category 2", "Sub-Category 3"]
@@ -31,6 +32,9 @@ interface Scholar {
 }
 
 const NewAnnotationForm: React.FC = () => {
+  const searchParams = useSearchParams()
+  const fatwaId = searchParams.get("fatwaId")
+
   const [title, setTitle] = useState("")
   const [issueDescription, setIssueDescription] = useState("")
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
@@ -99,7 +103,9 @@ const NewAnnotationForm: React.FC = () => {
 
       {/* Right side: Annotation Form */}
       <div className="w-1/2 p-6 overflow-y-auto">
-        <h2 className="text-3xl font-bold mb-6">Create New Annotation</h2>
+        <h2 className="text-3xl font-bold mb-6">
+          {fatwaId ? `Create New Annotation for Fatwa #${fatwaId}` : "Create New Annotation"}
+        </h2>
 
         <div className="space-y-6">
           <Card className="bg-gray-800 border-gray-700">

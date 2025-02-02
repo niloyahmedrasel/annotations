@@ -13,7 +13,6 @@ import {
   User,
   FolderTree,
   LogOut,
-  Menu,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react"
@@ -29,6 +28,7 @@ interface NavItem {
   submenu?: {
     title: string
     href: string
+    roles?: string[]
   }[]
   roles: string[]
 }
@@ -38,7 +38,7 @@ const navItems: NavItem[] = [
     title: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
-    roles: ["Super Admin", "Book Organizer", "Annotator", "Reviewer"],
+    roles: ["Super Admin", "Book Organizer", "Annotator"],
   },
   {
     title: "Role Management",
@@ -55,19 +55,18 @@ const navItems: NavItem[] = [
     title: "Books Management",
     href: "/dashboard/books",
     icon: BookOpen,
-    roles: ["Super Admin", "Book Organizer", "Annotator", "Reviewer"],
+    roles: ["Super Admin", "Book Organizer"],
     submenu: [
       { title: "All Books", href: "/dashboard/books" },
-      { title: "Add New Book", href: "/dashboard/books/new" },
-      { title: "Categories", href: "/dashboard/books/categories" },
-      { title: "New Type", href: "/dashboard/books/new-type" },
+      { title: "Add New Book", href: "/dashboard/books/new", roles: ["Super Admin"] },
+      { title: "New Type", href: "/dashboard/books/new-type", roles: ["Super Admin"] }
     ],
   },
   {
     title: "Fatwas Management",
     href: "/dashboard/fatwas",
     icon: FileText,
-    roles: ["Super Admin", "Annotator", "Reviewer"],
+    roles: ["Super Admin", "Annotator"],
     submenu: [
       { title: "All Fatwas", href: "/dashboard/fatwas" },
       { title: "Create New Fatwa", href: "/dashboard/fatwas/new" },
@@ -78,7 +77,7 @@ const navItems: NavItem[] = [
     title: "Annotations",
     href: "/dashboard/annotations",
     icon: Tag,
-    roles: ["Super Admin", "Annotator", "Reviewer"],
+    roles: ["Super Admin", "Annotator"],
     submenu: [
       { title: "All Annotations", href: "/dashboard/annotations" },
       { title: "Create New", href: "/dashboard/annotations/new" },
@@ -93,8 +92,12 @@ const navItems: NavItem[] = [
     roles: ["Super Admin"],
     submenu: [
       { title: "All Categories", href: "/dashboard/categories" },
-      { title: "Add New Category", href: "/dashboard/categories/new" },
-      { title: "Taxonomy", href: "/dashboard/categories/taxonomy" },
+      { title: "Book Categories", href: "/dashboard/categories/books" },
+      { title: "Editors", href: "/dashboard/categories/editors" },
+      { title: "Publishers", href: "/dashboard/categories/publishers" },
+      { title: "Authors", href: "/dashboard/categories/authors" },
+      { title: "Issue Categories", href: "/dashboard/categories/issue-categories" },
+      { title: "Issue Sub-categories", href: "/dashboard/categories/issue-subcategories" },
     ],
   },
   {
@@ -154,7 +157,15 @@ export function Sidebar({ onCollapse }: SidebarProps) {
     router.push("/login")
   }
 
-  const filteredNavItems = navItems.filter((item) => item.roles.includes(user?.role || ""))
+  const filteredNavItems = navItems.filter((item) => {
+    if (item.roles.includes(user?.role || "")) {
+      if (item.submenu) {
+        item.submenu = item.submenu.filter((subitem) => !subitem.roles || subitem.roles.includes(user?.role || ""))
+      }
+      return true
+    }
+    return false
+  })
 
   useEffect(() => {
     onCollapse(isCollapsed)
@@ -176,7 +187,7 @@ export function Sidebar({ onCollapse }: SidebarProps) {
           <>
             <Link href="/dashboard" className="flex items-center space-x-2">
               <LayoutDashboard className="h-6 w-6 text-primary" />
-              <span className="font-bold text-lg text-white">Annotation</span>
+              <span className="font-bold text-lg text-white">Admin Panel</span>
             </Link>
             <Button variant="ghost" size="icon" className="ml-auto" onClick={() => setIsCollapsed(true)}>
               <ChevronLeft className="h-6 w-6 text-primary" />
