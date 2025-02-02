@@ -111,9 +111,6 @@ export default function FatwasPage() {
                   <Button variant="ghost" size="sm">
                     Delete
                   </Button>
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link href={`/dashboard/annotations/new?fatwaId=${fatwa.id}`}>Annotate Fatwa</Link>
-                  </Button>
                 </TableCell>
               </TableRow>
             ))}
