@@ -24,9 +24,7 @@ export default function NewFatwaPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // Here you would typically send the data to your backend
     console.log({ selectedBook, title, selectedTags, description })
-    // After submission, redirect to the fatwas list
     router.push("/dashboard/fatwas")
   }
 

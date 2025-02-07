@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button"
 
 export function OCRSection() {
   const handleOCR = () => {
-    // Placeholder for OCR functionality
     console.log("OCR process started")
   }
 

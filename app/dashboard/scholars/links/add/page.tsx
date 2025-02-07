@@ -54,8 +54,6 @@ export default function AddLinkPage() {
 
   function onSubmit(values: z.infer<typeof linkFormSchema>) {
     console.log(values)
-    // Here you would typically send this data to your backend
-    // After successful submission, redirect to the links management page
     router.push("/dashboard/scholars/links")
   }
 

@@ -36,7 +36,6 @@ export default function NewCategoryPage() {
 
   function onSubmit(values: z.infer<typeof categoryFormSchema>) {
     console.log(values)
-    // Here you would typically send this data to your backend
   }
 
   return (

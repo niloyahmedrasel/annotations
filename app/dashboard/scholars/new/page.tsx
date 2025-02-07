@@ -34,7 +34,6 @@ export default function AddScholarPage() {
 
   function onSubmit(values: z.infer<typeof scholarFormSchema>) {
     console.log(values)
-    // Here you would typically send this data to your backend
   }
 
   return (

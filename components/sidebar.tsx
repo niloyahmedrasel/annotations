@@ -41,7 +41,7 @@ const navItems: NavItem[] = [
     roles: ["Super Admin", "Book Organizer", "Annotator"],
   },
   {
-    title: "Role Management",
+    title: "Uses & Groups",
     href: "/dashboard/roles",
     icon: Users,
     roles: ["Super Admin"],
@@ -52,7 +52,7 @@ const navItems: NavItem[] = [
     ],
   },
   {
-    title: "Books Management",
+    title: "Library Management",
     href: "/dashboard/books",
     icon: BookOpen,
     roles: ["Super Admin", "Book Organizer"],
