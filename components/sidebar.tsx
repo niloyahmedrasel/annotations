@@ -59,7 +59,8 @@ const navItems: NavItem[] = [
     submenu: [
       { title: "All Books", href: "/dashboard/books" },
       { title: "Add New Book", href: "/dashboard/books/new", roles: ["Super Admin"] },
-      { title: "New Type", href: "/dashboard/books/new-type", roles: ["Super Admin"] }
+      { title: "New Type", href: "/dashboard/books/new-type", roles: ["Super Admin"] },
+      { title: "Shamela Scrapper", href: "/dashboard/books/shamela", roles: ["Super Admin"] }
     ],
   },
   {
@@ -187,7 +188,7 @@ export function Sidebar({ onCollapse }: SidebarProps) {
           <>
             <Link href="/dashboard" className="flex items-center space-x-2">
               <LayoutDashboard className="h-6 w-6 text-primary" />
-              <span className="font-bold text-lg text-white">Admin Panel</span>
+              <span className="font-bold text-lg text-white">Annotation</span>
             </Link>
             <Button variant="ghost" size="icon" className="ml-auto" onClick={() => setIsCollapsed(true)}>
               <ChevronLeft className="h-6 w-6 text-primary" />
