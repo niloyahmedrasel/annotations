@@ -5,8 +5,9 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
 import { Edit, Trash, PlayCircle, BookOpen, User, Tag } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import {
@@ -59,14 +60,17 @@ const initialBooks: Book[] = [
   },
 ]
 
+const bookTypes = ["Religious", "Legal", "Scholarly"]
+const bookStatuses = ["Published", "In Review", "Unpublish"]
+
 export default function BooksPage() {
   const { user } = useAuth()
   const [books, setBooks] = useState<Book[]>(initialBooks)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [bookToDelete, setBookToDelete] = useState<Book | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
-  const [filterType, setFilterType] = useState("all")
-  const [filterStatus, setFilterStatus] = useState("all")
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([])
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
 
   const openDeleteDialog = (book: Book) => {
     setBookToDelete(book)
@@ -85,12 +89,20 @@ export default function BooksPage() {
     }
   }
 
+  const toggleType = (type: string) => {
+    setSelectedTypes((prev) => (prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]))
+  }
+
+  const toggleStatus = (status: string) => {
+    setSelectedStatuses((prev) => (prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status]))
+  }
+
   const filteredBooks = books.filter((book) => {
     const matchesSearch =
       book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       book.author.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesType = filterType === "all" || book.type === filterType
-    const matchesStatus = filterStatus === "all" || book.status === filterStatus
+    const matchesType = selectedTypes.length === 0 || selectedTypes.includes(book.type)
+    const matchesStatus = selectedStatuses.length === 0 || selectedStatuses.includes(book.status)
     return matchesSearch && matchesType && matchesStatus
   })
 
@@ -104,112 +116,115 @@ export default function BooksPage() {
           </Button>
         )}
       </div>
-      <div className="flex flex-col md:flex-row gap-4">
-        <Input
-          placeholder="Search books..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="md:w-1/3"
-        />
-        <Select value={filterType} onValueChange={setFilterType}>
-          <SelectTrigger className="md:w-1/4">
-            <SelectValue placeholder="Filter by Type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="Religious">Religious</SelectItem>
-            <SelectItem value="Legal">Legal</SelectItem>
-            <SelectItem value="Scholarly">Scholarly</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="md:w-1/4">
-            <SelectValue placeholder="Filter by Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="Published">Published</SelectItem>
-            <SelectItem value="In Review">In Review</SelectItem>
-            <SelectItem value="Unpublish">Unpublish</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredBooks.map((book) => (
-          <Card key={book.id} className="overflow-hidden transition-all duration-300 hover:shadow-lg">
-            <div className="aspect-w-16 aspect-h-9">
-              <img
-                src={book.thumbnail || "/placeholder.svg"}
-                alt={`${book.title} Thumbnail`}
-                className="object-cover w-full h-full"
-              />
-            </div>
-            <CardContent className="p-4">
-              <h2 className="text-xl font-semibold mb-2 line-clamp-2">{book.title}</h2>
-              <div className="flex items-center mb-2">
-                <User className="w-4 h-4 mr-2" />
-                <span className="text-sm text-gray-600">{book.author}</span>
+      <Input placeholder="Search books..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+      <div className="flex flex-col md:flex-row gap-6">
+        <div className="w-full md:w-1/4 space-y-6">
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold">Book Types</h2>
+            {bookTypes.map((type) => (
+              <div key={type} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`type-${type}`}
+                  checked={selectedTypes.includes(type)}
+                  onCheckedChange={() => toggleType(type)}
+                />
+                <Label htmlFor={`type-${type}`}>{type}</Label>
               </div>
-              <div className="flex items-center mb-2">
-                <BookOpen className="w-4 h-4 mr-2" />
-                <span className="text-sm text-gray-600">{book.type}</span>
+            ))}
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold">Book Statuses</h2>
+            {bookStatuses.map((status) => (
+              <div key={status} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`status-${status}`}
+                  checked={selectedStatuses.includes(status)}
+                  onCheckedChange={() => toggleStatus(status)}
+                />
+                <Label htmlFor={`status-${status}`}>{status}</Label>
               </div>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {book.categories.map((category) => (
-                  <Badge key={category} variant="secondary" className="text-xs">
-                    <Tag className="w-3 h-3 mr-1" />
-                    {category}
+            ))}
+          </div>
+        </div>
+        <div className="w-full md:w-3/4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredBooks.map((book) => (
+              <Card key={book.id} className="overflow-hidden transition-all duration-300 hover:shadow-lg">
+                <div className="aspect-w-16 aspect-h-9">
+                  <img
+                    src={book.thumbnail || "/placeholder.svg"}
+                    alt={`${book.title} Thumbnail`}
+                    className="object-cover w-full h-full"
+                  />
+                </div>
+                <CardContent className="p-4">
+                  <h2 className="text-xl font-semibold mb-2 line-clamp-2">{book.title}</h2>
+                  <div className="flex items-center mb-2">
+                    <User className="w-4 h-4 mr-2" />
+                    <span className="text-sm text-gray-600">{book.author}</span>
+                  </div>
+                  <div className="flex items-center mb-2">
+                    <BookOpen className="w-4 h-4 mr-2" />
+                    <span className="text-sm text-gray-600">{book.type}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {book.categories.map((category) => (
+                      <Badge key={category} variant="secondary" className="text-xs">
+                        <Tag className="w-3 h-3 mr-1" />
+                        {category}
+                      </Badge>
+                    ))}
+                  </div>
+                  <Badge variant={book.status === "Published" ? "default" : "secondary"} className="text-xs">
+                    {book.status}
                   </Badge>
-                ))}
-              </div>
-              <Badge variant={book.status === "Published" ? "default" : "secondary"} className="text-xs">
-                {book.status}
-              </Badge>
-            </CardContent>
-            <CardFooter className="p-4 flex justify-end space-x-2">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="default" size="sm" asChild>
-                      <Link href={`/dashboard/books/${book.id}`}>
-                        <Edit className="w-4 h-4" />
-                      </Link>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Edit</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="default" size="sm" asChild>
-                      <Link href={`/dashboard/books/process/${book.id}`}>
-                        <PlayCircle className="w-4 h-4" />
-                      </Link>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Process</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(book)}>
-                      <Trash className="w-4 h-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Delete</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </CardFooter>
-          </Card>
-        ))}
+                </CardContent>
+                <CardFooter className="p-4 flex justify-end space-x-2">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="secondary" size="sm" asChild>
+                          <Link href={`/dashboard/books/${book.id}`}>
+                            <Edit className="w-4 h-4" />
+                          </Link>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Edit</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="secondary" size="sm" asChild>
+                          <Link href={`/dashboard/books/process/${book.id}`}>
+                            <PlayCircle className="w-4 h-4" />
+                          </Link>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Process</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(book)}>
+                          <Trash className="w-4 h-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Delete</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        </div>
       </div>
 
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
