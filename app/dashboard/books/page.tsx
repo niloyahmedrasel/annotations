@@ -8,8 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
-import { Edit, Trash, PlayCircle, BookOpen, User, Tag } from "lucide-react"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { BookOpen, User, Tag } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -107,7 +106,15 @@ export default function BooksPage() {
   })
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      <div className="w-full mb-6">
+        <Input
+          placeholder="Search books..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-1/2 mx-auto h-9"
+        />
+      </div>
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Books</h1>
         {user?.role === "Super Admin" && (
@@ -116,9 +123,8 @@ export default function BooksPage() {
           </Button>
         )}
       </div>
-      <Input placeholder="Search books..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-      <div className="flex flex-col md:flex-row gap-6">
-        <div className="w-full md:w-1/4 space-y-6">
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="w-full md:w-1/4 space-y-4">
           <div className="space-y-2">
             <h2 className="text-lg font-semibold">Book Types</h2>
             {bookTypes.map((type) => (
@@ -147,9 +153,9 @@ export default function BooksPage() {
           </div>
         </div>
         <div className="w-full md:w-3/4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredBooks.map((book) => (
-              <Card key={book.id} className="overflow-hidden transition-all duration-300 hover:shadow-lg">
+              <Card key={book.id} className="flex flex-col h-full transition-all duration-300 hover:shadow-lg">
                 <div className="aspect-w-16 aspect-h-9">
                   <img
                     src={book.thumbnail || "/placeholder.svg"}
@@ -157,7 +163,7 @@ export default function BooksPage() {
                     className="object-cover w-full h-full"
                   />
                 </div>
-                <CardContent className="p-4">
+                <CardContent className="flex-grow p-4">
                   <h2 className="text-xl font-semibold mb-2 line-clamp-2">{book.title}</h2>
                   <div className="flex items-center mb-2">
                     <User className="w-4 h-4 mr-2" />
@@ -179,47 +185,10 @@ export default function BooksPage() {
                     {book.status}
                   </Badge>
                 </CardContent>
-                <CardFooter className="p-4 flex justify-end space-x-2">
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="secondary" size="sm" asChild>
-                          <Link href={`/dashboard/books/${book.id}`}>
-                            <Edit className="w-4 h-4" />
-                          </Link>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Edit</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="secondary" size="sm" asChild>
-                          <Link href={`/dashboard/books/process/${book.id}`}>
-                            <PlayCircle className="w-4 h-4" />
-                          </Link>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Process</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(book)}>
-                          <Trash className="w-4 h-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Delete</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                <CardFooter className="p-4">
+                  <Button variant="default" size="sm" asChild>
+                    <Link href={`/dashboard/books/${book.id}`}>View Book</Link>
+                  </Button>
                 </CardFooter>
               </Card>
             ))}
