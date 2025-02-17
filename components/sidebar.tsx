@@ -15,6 +15,7 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  Star,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -59,18 +60,18 @@ const navItems: NavItem[] = [
     submenu: [
       { title: "All Books", href: "/dashboard/books" },
       { title: "Add New Book", href: "/dashboard/books/new", roles: ["Super Admin"] },
-      { title: "New Type", href: "/dashboard/books/new-type", roles: ["Super Admin"] },
+      { title: "New Book Type", href: "/dashboard/books/new-type", roles: ["Super Admin"] },
       { title: "Shamela Scrapper", href: "/dashboard/books/shamela", roles: ["Super Admin"] }
     ],
   },
   {
-    title: "Fatwas Management",
+    title: "Issue Management",
     href: "/dashboard/fatwas",
     icon: FileText,
     roles: ["Super Admin", "Annotator"],
     submenu: [
-      { title: "All Fatwas", href: "/dashboard/fatwas" },
-      { title: "Create New Fatwa", href: "/dashboard/fatwas/new" },
+      { title: "Issue Viewer", href: "/dashboard/fatwas" },
+      { title: "Create Issue", href: "/dashboard/fatwas/new" },
       { title: "Categories", href: "/dashboard/fatwas/categories" },
     ],
   },
@@ -112,6 +113,12 @@ const navItems: NavItem[] = [
       { title: "Link Management", href: "/dashboard/scholars/links" },
       { title: "Add Link", href: "/dashboard/scholars/links/add" },
     ],
+  },
+  {
+    title: "Score Management",
+    href: "/dashboard/score-management",
+    icon: Star,
+    roles: ["Super Admin"],
   },
 ]
 
