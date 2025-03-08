@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -18,10 +18,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { useAuth } from "@/components/auth-provider"
+import Image from "next/image"
 
 interface Book {
   id: string
-  thumbnail: string
+  bookCover: string
   title: string
   author: string
   type: string
@@ -29,47 +30,58 @@ interface Book {
   categories: string[]
 }
 
-const initialBooks: Book[] = [
-  {
-    id: "1",
-    thumbnail: "https://via.placeholder.com/150?text=Book+1",
-    title: "The Book of Knowledge",
-    author: "Scholar Name",
-    type: "Religious",
-    status: "Published",
-    categories: ["Islamic Studies", "Education"],
-  },
-  {
-    id: "2",
-    thumbnail: "https://via.placeholder.com/150?text=Book+2",
-    title: "Principles of Islamic Jurisprudence",
-    author: "Dr. Ahmad Ali",
-    type: "Legal",
-    status: "In Review",
-    categories: ["Islamic Law", "Jurisprudence"],
-  },
-  {
-    id: "3",
-    thumbnail: "https://via.placeholder.com/150?text=Book+3",
-    title: "Hadith Compilation",
-    author: "Imam Bukhari",
-    type: "Scholarly",
-    status: "Unpublish",
-    categories: ["Hadith", "Islamic Studies"],
-  },
-]
-
 const bookTypes = ["Religious", "Legal", "Scholarly"]
 const bookStatuses = ["Published", "In Review", "Unpublish"]
 
 export default function BooksPage() {
   const { user } = useAuth()
-  const [books, setBooks] = useState<Book[]>(initialBooks)
+  const [books, setBooks] = useState<Book[]>([])
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [bookToDelete, setBookToDelete] = useState<Book | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedTypes, setSelectedTypes] = useState<string[]>([])
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchBooks = async () => {
+      try {
+        const user = sessionStorage.getItem("user");
+        const token = user ? JSON.parse(user).token : null;
+        const response = await fetch("https://lkp.pathok.com.bd/api/book", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+  
+        if (!response.ok) {
+          throw new Error("Failed to fetch books");
+        }
+  
+        const data = await response.json();
+        console.log(data);
+  
+        // Map API response to match the expected structure
+        const formattedBooks = data.books.map((book: any) => ({
+          id: book._id, // Assuming the API uses `_id`
+          bookCover: book.bookCover ? `https://lkp.pathok.com.bd/upload/${book.bookCover}` : "/placeholder.svg",
+          title: book.title,
+          author: book.author,
+          type: book.type, // Consider fetching type names separately if needed
+          status: "Published", // The API response doesn't have a status field; adjust accordingly
+          categories: [book.category], // Converting category from string to an array
+        }));
+  
+        setBooks(formattedBooks);
+      } catch (error) {
+        setError((error as Error).message);
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    fetchBooks();
+  }, []);
+  
 
   const openDeleteDialog = (book: Book) => {
     setBookToDelete(book)
@@ -153,46 +165,54 @@ export default function BooksPage() {
           </div>
         </div>
         <div className="w-full md:w-3/4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredBooks.map((book) => (
-              <Card key={book.id} className="flex flex-col h-full transition-all duration-300 hover:shadow-lg">
-                <div className="aspect-w-16 aspect-h-9">
-                  <img
-                    src={book.thumbnail || "/placeholder.svg"}
-                    alt={`${book.title} Thumbnail`}
-                    className="object-cover w-full h-full"
-                  />
-                </div>
-                <CardContent className="flex-grow p-4">
-                  <h2 className="text-xl font-semibold mb-2 line-clamp-2">{book.title}</h2>
-                  <div className="flex items-center mb-2">
-                    <User className="w-4 h-4 mr-2" />
-                    <span className="text-sm text-gray-600">{book.author}</span>
+          {loading ? (
+            <p className="text-center text-gray-600">Loading books...</p>
+          ) : error ? (
+            <p className="text-center text-red-500">{error}</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredBooks.map((book) => (
+                <Card key={book.id} className="flex flex-col h-full transition-all duration-300 hover:shadow-lg">
+                  <div className="aspect-w-16 aspect-h-9">
+                    <img
+                      src={book.bookCover || "/placeholder.svg"}
+                      width={50}
+                      height={20}
+                      alt={`${book.title} Thumbnail`}
+                      className="object-cover w-full h-full"
+                    />
                   </div>
-                  <div className="flex items-center mb-2">
-                    <BookOpen className="w-4 h-4 mr-2" />
-                    <span className="text-sm text-gray-600">{book.type}</span>
-                  </div>
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {book.categories.map((category) => (
-                      <Badge key={category} variant="secondary" className="text-xs">
-                        <Tag className="w-3 h-3 mr-1" />
-                        {category}
-                      </Badge>
-                    ))}
-                  </div>
-                  <Badge variant={book.status === "Published" ? "default" : "secondary"} className="text-xs">
-                    {book.status}
-                  </Badge>
-                </CardContent>
-                <CardFooter className="p-4">
-                  <Button variant="default" size="sm" asChild>
-                    <Link href={`/dashboard/books/${book.id}`}>View Book</Link>
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
+                  <CardContent className="flex-grow p-4">
+                    <h2 className="text-xl font-semibold mb-2 line-clamp-2">{book.title}</h2>
+                    <div className="flex items-center mb-2">
+                      <User className="w-4 h-4 mr-2" />
+                      <span className="text-sm text-gray-600">{book.author}</span>
+                    </div>
+                    <div className="flex items-center mb-2">
+                      <BookOpen className="w-4 h-4 mr-2" />
+                      <span className="text-sm text-gray-600">{book.type}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {book.categories.map((category) => (
+                        <Badge key={category} variant="secondary" className="text-xs">
+                          <Tag className="w-3 h-3 mr-1" />
+                          {category}
+                        </Badge>
+                      ))}
+                    </div>
+                    <Badge variant={book.status === "Published" ? "default" : "secondary"} className="text-xs">
+                      {book.status}
+                    </Badge>
+                  </CardContent>
+                  <CardFooter className="p-4">
+                    <Button variant="default" size="sm" asChild>
+                      <Link href={`/dashboard/books/${book.id}`}>View Book</Link>
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -204,17 +224,21 @@ export default function BooksPage() {
               Are you sure you want to delete the book "{bookToDelete?.title}"? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={closeDeleteDialog}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={confirmDelete}>
-              Delete
-            </Button>
+          <DialogFooter className="flex justify-end space-x-3">
+            <div>
+              <Button variant="outline" onClick={closeDeleteDialog}>
+                Cancel
+              </Button>
+            </div>
+            <div>
+              <Button variant="destructive" onClick={confirmDelete}>
+                Delete
+              </Button>
+            </div>
+            
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   )
 }
-

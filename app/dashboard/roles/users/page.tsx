@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,31 +10,52 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ChevronUp, ChevronDown } from "lucide-react"
 
 interface User {
-  id: number
+  _id: string
   name: string
   email: string
   role: string
 }
 
-const users: User[] = [
-  { id: 1, name: "John Doe", email: "john@example.com", role: "Book Organizer" },
-  { id: 2, name: "Jane Smith", email: "jane@example.com", role: "Annotator" },
-  { id: 3, name: "Ahmed Ali", email: "ahmed@example.com", role: "Reviewer" },
-  { id: 4, name: "Maria Garcia", email: "maria@example.com", role: "Book Organizer" },
-  { id: 5, name: "David Chen", email: "david@example.com", role: "Annotator" },
-  { id: 6, name: "Sarah Johnson", email: "sarah@example.com", role: "Reviewer" },
-  { id: 7, name: "Mohammed Al-Fayed", email: "mohammed@example.com", role: "Book Organizer" },
-  { id: 8, name: "Emily Brown", email: "emily@example.com", role: "Annotator" },
-]
-
 type SortKey = "name" | "email" | "role"
 
 export default function UsersPage() {
+  const [users, setUsers] = useState<User[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
   const [searchTerm, setSearchTerm] = useState("")
   const [roleFilter, setRoleFilter] = useState("All")
   const [sortKey, setSortKey] = useState<SortKey>("name")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
-  const [frozenUsers, setFrozenUsers] = useState<number[]>([])
+  const [frozenUsers, setFrozenUsers] = useState<string[]>([])
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const user = sessionStorage.getItem("user")
+      const token = user ? JSON.parse(user).token : null
+      console.log(user)
+      if (!token) {
+        setError("No authentication token found.")
+        setLoading(false)
+        return
+      }
+
+      try {
+        const response = await fetch("https://lkp.pathok.com.bd/api/user", {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (!response.ok) throw new Error("Failed to fetch users")
+        const data = await response.json()
+        console.log("this is user",data)
+        setUsers(data.users)
+      } catch (err) {
+        setError((err as any).message)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchUsers()
+  }, [])
 
   const filteredAndSortedUsers = useMemo(() => {
     return users
@@ -49,7 +70,9 @@ export default function UsersPage() {
         if (a[sortKey] > b[sortKey]) return sortOrder === "asc" ? 1 : -1
         return 0
       })
-  }, [searchTerm, roleFilter, sortKey, sortOrder])
+  }, [users, searchTerm, roleFilter, sortKey, sortOrder, frozenUsers])
+
+  console.log(filteredAndSortedUsers)
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -60,9 +83,18 @@ export default function UsersPage() {
     }
   }
 
-  const toggleFreeze = (userId: number) => {
-    setFrozenUsers((prev) => (prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]))
-  }
+
+  const toggleFreeze = (userId: string) => {
+  setFrozenUsers((prev) => {
+    const newFrozenUsers = prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId];
+    console.log("Frozen Users List:", newFrozenUsers);
+    return newFrozenUsers;
+  });
+};
+
+
+  if (loading) return <p>Loading users...</p>
+  if (error) return <p className="text-red-500">Error: {error}</p>
 
   return (
     <div className="space-y-6">
@@ -94,38 +126,24 @@ export default function UsersPage() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="cursor-pointer" onClick={() => handleSort("name")}>
-              Name
-              {sortKey === "name" &&
-                (sortOrder === "asc" ? <ChevronUp className="inline ml-2" /> : <ChevronDown className="inline ml-2" />)}
-            </TableHead>
-            <TableHead className="cursor-pointer" onClick={() => handleSort("email")}>
-              Email
-              {sortKey === "email" &&
-                (sortOrder === "asc" ? <ChevronUp className="inline ml-2" /> : <ChevronDown className="inline ml-2" />)}
-            </TableHead>
-            <TableHead className="cursor-pointer" onClick={() => handleSort("role")}>
-              Role
-              {sortKey === "role" &&
-                (sortOrder === "asc" ? <ChevronUp className="inline ml-2" /> : <ChevronDown className="inline ml-2" />)}
-            </TableHead>
+            <TableHead className="cursor-pointer" onClick={() => handleSort("name")}>Name</TableHead>
+            <TableHead className="cursor-pointer" onClick={() => handleSort("email")}>Email</TableHead>
+            <TableHead className="cursor-pointer" onClick={() => handleSort("role")}>Role</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {filteredAndSortedUsers.map((user) => (
-            <TableRow key={user.id} className={frozenUsers.includes(user.id) ? "opacity-50" : ""}>
+            <TableRow key={user._id} className={frozenUsers.includes(user._id) ? "opacity-50" : ""}>
               <TableCell className="font-medium">{user.name}</TableCell>
               <TableCell>{user.email}</TableCell>
-              <TableCell>
-                <Badge variant="secondary">{user.role}</Badge>
-              </TableCell>
+              <TableCell><Badge variant="secondary">{user.role}</Badge></TableCell>
               <TableCell className="text-right">
                 <Button variant="ghost" size="sm" asChild>
-                  <Link href={`/dashboard/roles/users/${user.id}`}>Edit</Link>
+                  <Link href={`/dashboard/roles/users/${user._id}`}>Edit</Link>
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => toggleFreeze(user.id)}>
-                  {frozenUsers.includes(user.id) ? "Unfreeze" : "Freeze"}
+                <Button variant="ghost" size="sm" onClick={() => toggleFreeze(user._id)}>
+                  {frozenUsers.includes(user._id) ? "Unfreeze" : "Freeze"}
                 </Button>
               </TableCell>
             </TableRow>
@@ -135,4 +153,3 @@ export default function UsersPage() {
     </div>
   )
 }
-

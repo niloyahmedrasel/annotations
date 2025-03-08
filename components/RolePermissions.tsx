@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
@@ -24,106 +24,158 @@ interface PermissionState {
   }
 }
 
-const initialPermissions: Category[] = [
-  {
-    name: "Library management",
-    actions: [
-      { id: "1", name: "Upload books" },
-      { id: "2", name: "Edit book metadata" },
-      { id: "3", name: "Make available for annotation" },
-      { id: "4", name: "Remove from annotation" },
-      { id: "5", name: "Apply OCR" },
-      { id: "6", name: "Scrap from Shamela" },
-      { id: "7", name: "Format doc" },
-    ],
-  },
-  {
-    name: "Doc management",
-    actions: [
-      { id: "8", name: "Read only" },
-      { id: "9", name: "Edit doc" },
-      { id: "10", name: "Review doc" },
-    ],
-  },
-  {
-    name: "Annotation management",
-    actions: [
-      { id: "11", name: "Create issue" },
-      { id: "12", name: "Edit his issues" },
-      { id: "13", name: "Create annotation" },
-      { id: "14", name: "Edit his annotations" },
-    ],
-  },
-  {
-    name: "User management",
-    actions: [
-      { id: "15", name: "Create user" },
-      { id: "16", name: "Edit/delete user" },
-      { id: "17", name: "Create group" },
-      { id: "18", name: "Edit/delete group" },
-      { id: "19", name: "Freeze/Unfreeze users" },
-      { id: "20", name: "Reset password" },
-      { id: "21", name: "Assign role and permission" },
-    ],
-  },
-  {
-    name: "Scoring management",
-    actions: [
-      { id: "22", name: "View user activity summary" },
-      { id: "23", name: "Make/modify scoring criteria" },
-      { id: "24", name: "Review scoring for users" },
-    ],
-  },
-]
-
-const roles = ["Admin", "Doc Organizer", "Annotator", "Reviewer"]
+const roles = ["Super Admin", "Doc Organizer", "Annotator", "Reviewer"]
 
 const RolePermissions = () => {
-  const [permissions, setPermissions] = useState<Category[]>(initialPermissions)
+  const [permissions, setPermissions] = useState<Category[]>([])
   const [permissionState, setPermissionState] = useState<PermissionState>({})
   const [newPermission, setNewPermission] = useState({ category: "", action: "" })
   const [expandedCategories, setExpandedCategories] = useState<string[]>([])
 
-  const handlePermissionChange = (actionId: string, role: string) => {
-    setPermissionState((prevState) => ({
-      ...prevState,
-      [actionId]: {
-        ...prevState[actionId],
-        [role]: !prevState[actionId]?.[role],
-      },
-    }))
-  }
-
-  const addNewPermission = () => {
-    if (newPermission.category && newPermission.action) {
-      setPermissions((prevPermissions) => {
-        const categoryIndex = prevPermissions.findIndex((cat) => cat.name === newPermission.category)
-        if (categoryIndex !== -1) {
-          const updatedCategory = {
-            ...prevPermissions[categoryIndex],
-            actions: [
-              ...prevPermissions[categoryIndex].actions,
-              { id: Date.now().toString(), name: newPermission.action },
-            ],
-          }
-          return [
-            ...prevPermissions.slice(0, categoryIndex),
-            updatedCategory,
-            ...prevPermissions.slice(categoryIndex + 1),
-          ]
-        } else {
-          return [
-            ...prevPermissions,
-            {
-              name: newPermission.category,
-              actions: [{ id: Date.now().toString(), name: newPermission.action }],
-            },
-          ]
-        }
-      })
-      setNewPermission({ category: "", action: "" })
+  const handlePermissionChange = async (actionId: string, role: string) => {
+    try {
+      const user = sessionStorage.getItem("user"); 
+      const userId = user ? JSON.parse(user).id : null;
+      const token = user ? JSON.parse(user).token : null;
+      if (!token) {
+        console.error("No token found!");
+        return;
+      }
+  
+      const isChecked = !permissionState[actionId]?.[role];
+  
+      setPermissionState((prevState) => ({
+        ...prevState,
+        [actionId]: {
+          ...prevState[actionId],
+          [role]: isChecked,
+        },
+      }));
+  
+      const endpoint = isChecked
+        ? `https://lkp.pathok.com.bd/api/user/grant-permission/${userId}` 
+        : `https://lkp.pathok.com.bd/api/user/remove-permission/${userId}`; 
+  
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          role: role,
+          permissionId: actionId,
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Failed to ${isChecked ? "grant" : "revoke"} permission`);
+      }
+  
+      console.log(`Permission ${isChecked ? "granted" : "revoked"} successfully`);
+    } catch (error) {
+      setPermissionState((prevState) => ({
+        ...prevState,
+        [actionId]: {
+          ...prevState[actionId],
+          [role]: !prevState[actionId]?.[role],
+        },
+      }));
     }
-  }
+  };
+
+  useEffect(() => {
+    const fetchPermissions = async () => {
+      const user = sessionStorage.getItem("user") 
+      const token = user ? JSON.parse(user).token : null
+      if (!token) {
+        console.error("No token found!")
+        return
+      }
+
+      try {
+        const response = await fetch("https://lkp.pathok.com.bd/api/permission", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch permissions")
+        }
+
+        const data = await response.json()
+        const transformedData = data.permissions.map((permission: any) => ({
+          name: permission.category,
+          actions: permission.action.map((action: any) => ({
+            id: action._id,
+            name: action.name,
+          })),
+        }))
+        setPermissions(transformedData)
+      } catch (error) {
+        console.error("Error fetching permissions:", error)
+      }
+    }
+
+    fetchPermissions()
+  }, [permissions])
+
+  const addNewPermission = async () => {
+    if (!newPermission.category || !newPermission.action) {
+      console.error("Category and action are required");
+      return;
+    }
+    
+    const user = sessionStorage.getItem("user");
+    const token = user ? JSON.parse(user).token : null;
+    
+    if (!token) {
+      console.error("No token found!");
+      return;
+    }
+  
+    const requestData = {
+      categoryName: newPermission.category,
+      action: [{ name: newPermission.action }],
+    };
+  
+    try {
+      const response = await fetch("https://lkp.pathok.com.bd/api/permission/add-action", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(requestData),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to add permission");
+      }
+  
+      const data = await response.json();
+      console.log("Permission added:", data);
+  
+      setPermissions((prevPermissions) => {
+        const categoryIndex = prevPermissions.findIndex((cat) => cat.name === data.categoryName);
+        if (categoryIndex !== -1) {
+          const updatedPermissions = [...prevPermissions];
+          updatedPermissions[categoryIndex].actions.push(...(data.action ?? []));
+          return updatedPermissions;
+        }
+        return [...prevPermissions, { name: data.categoryName, actions: data.action ?? [] }];
+      });      
+  
+      setNewPermission({ category: "", action: "" });
+    } catch (error) {
+      console.error("Error adding permission:", error);
+    }
+  };
+  
+  
 
   const toggleCategory = (categoryName: string) => {
     setExpandedCategories((prev) =>
@@ -191,7 +243,7 @@ const RolePermissions = () => {
                   </TableCell>
                 </TableRow>
                 {expandedCategories.includes(category.name) &&
-                  category.actions.map((action) => (
+                    (category.actions ?? []).map((action) => (
                     <TableRow key={action.id}>
                       <TableCell></TableCell>
                       <TableCell>{action.name}</TableCell>
@@ -215,4 +267,3 @@ const RolePermissions = () => {
 }
 
 export default RolePermissions
-

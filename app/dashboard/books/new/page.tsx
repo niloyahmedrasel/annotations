@@ -1,12 +1,26 @@
-"use client"
+"use client";
 
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import * as z from "zod"
-import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { toast } from "react-toastify";
 
 const bookFormSchema = z.object({
   title: z.string().min(2, { message: "Title must be at least 2 characters." }),
@@ -15,9 +29,11 @@ const bookFormSchema = z.object({
   publisher: z.string({ required_error: "Please select a publisher." }),
   type: z.string({ required_error: "Please select a book type." }),
   category: z.string({ required_error: "Please select a category." }),
-  bookCover: z.any().refine((file) => file?.length === 1, "Book cover is required."),
+  bookCover: z
+    .any()
+    .refine((file) => file?.length === 1, "Book cover is required."),
   file: z.any().refine((file) => file?.length === 1, "File is required."),
-})
+});
 
 export default function NewBookPage() {
   const form = useForm<z.infer<typeof bookFormSchema>>({
@@ -30,10 +46,43 @@ export default function NewBookPage() {
       type: "",
       category: "",
     },
-  })
+  });
 
-  function onSubmit(values: z.infer<typeof bookFormSchema>) {
-    console.log(values)
+  async function onSubmit(values: z.infer<typeof bookFormSchema>) {
+    const formData = new FormData();
+    formData.append("title", values.title);
+    formData.append("author", values.author);
+    formData.append("editor", values.editor);
+    formData.append("publisher", values.publisher);
+    formData.append("type", values.type);
+    formData.append("category", values.category);
+
+    if (values.bookCover && values.bookCover.length > 0) {
+      formData.append("bookCover", values.bookCover[0]);
+    }
+    if (values.file && values.file.length > 0) {
+      formData.append("bookFile", values.file[0]);
+    }
+    const user = sessionStorage.getItem("user")
+    const token = user ? JSON.parse(user).token : null;
+    try {
+      const response = await fetch("https://lkp.pathok.com.bd/api/book", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const result = await response.json();
+      console.log("Success:", result);
+      form.reset();
+
+      // Show a success toast
+      toast.success("Document submitted successfully!");
+    } catch (error) {
+      console.error("Error:", error);
+    }
   }
 
   return (
@@ -169,28 +218,38 @@ export default function NewBookPage() {
             )}
           />
 
+          {/* File Input: Book Cover */}
           <FormField
             control={form.control}
             name="bookCover"
-            render={({ field }) => (
+            render={({ field: { onChange } }) => (
               <FormItem>
                 <FormLabel>Upload Book Cover</FormLabel>
                 <FormControl>
-                  <Input type="file" accept="image/*" {...field} />
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => onChange(e.target.files)}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
+          {/* File Input: Book File */}
           <FormField
             control={form.control}
             name="file"
-            render={({ field }) => (
+            render={({ field: { onChange } }) => (
               <FormItem>
                 <FormLabel>Upload Book File</FormLabel>
                 <FormControl>
-                  <Input type="file" accept=".pdf,.docx" {...field} />
+                  <Input
+                    type="file"
+                    accept=".pdf,.docx"
+                    onChange={(e) => onChange(e.target.files)}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -201,5 +260,5 @@ export default function NewBookPage() {
         </form>
       </Form>
     </div>
-  )
+  );
 }

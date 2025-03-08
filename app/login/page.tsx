@@ -21,9 +21,9 @@ export default function LoginPage() {
     }
   }, [user, isLoading, router])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const success = login(email, password)
+    const success = await login(email, password)
     if (success) {
       const lastPath = localStorage.getItem("lastPath") || "/dashboard"
       router.push(lastPath)
@@ -72,4 +72,3 @@ export default function LoginPage() {
     </div>
   )
 }
-
