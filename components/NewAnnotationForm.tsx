@@ -94,12 +94,15 @@ const NewAnnotationForm: React.FC = () => {
     <div className="flex h-screen bg-gray-900 text-gray-100">
       {/* Left side: PDF Viewer */}
       <div className="w-1/2 sticky top-0 h-screen overflow-y-auto p-4">
-        <Card className="h-full bg-gray-800 border-gray-700">
-          <CardContent className="flex items-center justify-center h-full">
-            <p className="text-gray-400">PDF Viewer Placeholder</p>
-          </CardContent>
-        </Card>
-      </div>
+    <Card className="h-full bg-gray-800 border-gray-700">
+      <CardContent className="flex items-center justify-center h-full">
+        <iframe 
+          src="http://localhost:8080/"
+          className="w-full h-full border-none rounded-lg"
+        />
+      </CardContent>
+    </Card>
+  </div>
 
       {/* Right side: Annotation Form */}
       <div className="w-1/2 p-6 overflow-y-auto">
