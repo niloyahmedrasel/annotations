@@ -97,7 +97,7 @@ const NewAnnotationForm: React.FC = () => {
     <Card className="h-full bg-gray-800 border-gray-700">
       <CardContent className="flex items-center justify-center h-full">
         <iframe 
-          src="http://localhost:8080/"
+          src="https://studio.pathok.com.bd"
           className="w-full h-full border-none rounded-lg"
         />
       </CardContent>

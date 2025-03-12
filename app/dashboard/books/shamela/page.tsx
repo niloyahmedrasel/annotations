@@ -7,22 +7,46 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { BookOpen, Search, Eye } from "lucide-react"
 
 export default function ShamelaPage() {
-  const [url, setUrl] = useState("")
   const [bookNumber, setBookNumber] = useState("")
   const [startPage, setStartPage] = useState("")
   const [endPage, setEndPage] = useState("")
 
-  const handleScrap = () => {
-    // Implement scraping logic here
-    console.log("Scraping URL:", url)
-    console.log("Book Number:", bookNumber)
-    console.log("Start Page:", startPage)
-    console.log("End Page:", endPage)
-    // You would typically send this to your backend for processing
+  const baseUrl = "https://shamela.ws/book/{bookNumber}/{pageNumber}#p1";  // Fixed base URL
+
+  const handleScrap = async () => {
+    const requestBody = {
+      baseUrl: baseUrl,
+      bookNumber: bookNumber,
+      startPage: startPage,
+      endPage: endPage
+    }
+
+    try {
+      // Make a POST request to the backend
+      const response = await fetch("http://localhost:5000/api/scrape", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(requestBody)
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        console.log("Scraping result:", data)
+        // Handle the successful response here, e.g., show a success message
+      } else {
+        console.error("Error scraping book:", data)
+        // Handle the error case here, e.g., show an error message
+      }
+    } catch (error) {
+      console.error("Error during API request:", error)
+      // Handle the network error here
+    }
   }
 
   const handleViewDoc = () => {
-    // Implement view document logic here
     console.log("Viewing document")
     // This could open a new tab or modal with the document preview
   }
@@ -33,19 +57,20 @@ export default function ShamelaPage() {
       <Card className="w-full max-w-2xl mx-auto">
         <CardHeader>
           <CardTitle className="text-2xl">Scrap Book from Shamela</CardTitle>
-          <CardDescription>Enter the Shamela URL and additional details of the book you want to scrap</CardDescription>
+          <CardDescription>Enter the book number and the start/end page for scraping</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Fixed base URL input */}
           <div className="flex items-center space-x-2">
             <BookOpen className="w-6 h-6 text-gray-400" />
             <Input
-              type="url"
-              placeholder="https://shamela.ws/book/XXX"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
+              type="text"
+              value={baseUrl}
+              readOnly
               className="flex-1"
             />
           </div>
+          
           <div className="flex space-x-2">
             <Input
               type="text"
@@ -71,7 +96,7 @@ export default function ShamelaPage() {
           </div>
         </CardContent>
         <CardFooter className="flex justify-between">
-          <Button onClick={handleScrap} disabled={!url} className="flex-1 mr-2">
+          <Button onClick={handleScrap} disabled={!bookNumber || !startPage || !endPage} className="flex-1 mr-2">
             <Search className="w-4 h-4 mr-2" />
             Scrap Book
           </Button>
@@ -84,4 +109,3 @@ export default function ShamelaPage() {
     </div>
   )
 }
-
