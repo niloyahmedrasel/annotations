@@ -21,6 +21,7 @@ import { toast } from "react-toastify"
 interface Book {
   id: string
   bookCover: string
+  bookFile:string
   title: string
   author: string
   type: string
@@ -60,28 +61,17 @@ export default function BookDetailsPage({ params }: { params: { id: string } }) 
     fetchBook()
   }, [params.id])
 
-  // Fetch the document URL from backend and open it in OnlyOffice
   const handleOpenDoc = async () => {
-    try {
-      const user = sessionStorage.getItem("user")
-      const token = user ? JSON.parse(user).token : null
-      const response = await fetch(`https://lkp.pathok.com.bd/api/docEditor/view-doc/${params.id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      if (!response.ok) throw new Error("Failed to fetch document editor URL")
-      const data = await response.json()
-      if (data.editorUrl) {
-        window.open(data.editorUrl, "_blank")
-      } else {
-        toast.error("Failed to open document")
-      }
-    } catch (error) {
-      console.error("Error opening document:", error)
-      toast.error("Error opening document")
+    console.log("this is book",book)
+    if (!book || !book?.bookFile) {
+      console.error("Book file not found!");
+      return;
     }
-  }
+  
+    const editorUrl = `https://test.pathok.com.bd/editor?fileName=${encodeURIComponent(book.bookFile)}&mode=edit`;
+    window.open(editorUrl, "_blank"); 
+  };
+  
 
   const handleDelete = async () => {
     try {
