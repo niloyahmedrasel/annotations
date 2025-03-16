@@ -26,7 +26,7 @@ export default function ShamelaPage() {
     }
 
     try {
-      const response = await fetch("http://lkp.pathok.com.bd/api/scrape", {
+      const response = await fetch("https://lkp.pathok.com.bd/api/scrape", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestData),
