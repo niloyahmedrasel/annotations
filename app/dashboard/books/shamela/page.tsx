@@ -1,83 +1,94 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { BookOpen, Search, Eye } from "lucide-react"
+import { BookOpen, Search } from "lucide-react"
 
+interface Document {
+  fileName: string;
+}
 export default function ShamelaPage() {
   const [bookNumber, setBookNumber] = useState("")
   const [startPage, setStartPage] = useState("")
   const [endPage, setEndPage] = useState("")
-
-  const baseUrl = "https://shamela.ws/book/{bookNumber}/{pageNumber}#p1";  // Fixed base URL
+  const [loading, setLoading] = useState(false)
+  const [data, setData] = useState([]);
 
   const handleScrap = async () => {
-    const requestBody = {
-      baseUrl: baseUrl,
-      bookNumber: bookNumber,
-      startPage: startPage,
-      endPage: endPage
+    setLoading(true)
+    const requestData = {
+      baseUrl: "https://shamela.ws/book/{bookNumber}/{pageNumber}#p1",
+      bookNumber,
+      startPage,
+      endPage,
     }
 
     try {
-      // Make a POST request to the backend
-      const response = await fetch("http://localhost:5000/api/scrape", {
+      const response = await fetch("http://lkp.pathok.com.bd/api/scrape", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(requestBody)
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestData),
       })
-
+      
+      if (!response.ok) throw new Error("Failed to scrape")
       const data = await response.json()
-
-      if (response.ok) {
-        console.log("Scraping result:", data)
-        // Handle the successful response here, e.g., show a success message
-      } else {
-        console.error("Error scraping book:", data)
-        // Handle the error case here, e.g., show an error message
-      }
     } catch (error) {
-      console.error("Error during API request:", error)
-      // Handle the network error here
+      console.error("Error scraping:", error)
     }
+    setLoading(false)
   }
 
-  const handleViewDoc = () => {
-    console.log("Viewing document")
-    // This could open a new tab or modal with the document preview
+  const handleViewDocument = async (fileName: string) => {
+    const editorUrl = `https://test.pathok.com.bd/editor?fileName=${encodeURIComponent(fileName)}&mode=edit`;
+    window.open(editorUrl, "_blank"); 
   }
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const response = await fetch("http://lkp.pathok.com.bd/api/scraped-documents");
+        if (!response.ok) throw new Error("Failed to fetch history");
+        const data = await response.json();
+        console.log(data)
+        setData(data);
+      } catch (error) {
+        console.error("Error fetching history:", error);
+      }
+    };
+
+    fetchHistory();
+  }, [])
 
   return (
-    <div className="container mx-auto py-10">
-      <h1 className="text-3xl font-bold mb-6">Shamela Book Scraper</h1>
-      <Card className="w-full max-w-2xl mx-auto">
+    <div className="container mx-auto py-10 grid grid-cols-2 gap-8">
+      {/* Scraping Form */}
+      <Card className="w-full max-w-2xl">
         <CardHeader>
           <CardTitle className="text-2xl">Scrap Book from Shamela</CardTitle>
-          <CardDescription>Enter the book number and the start/end page for scraping</CardDescription>
+          <CardDescription>Enter book details to start scraping</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Fixed base URL input */}
-          <div className="flex items-center space-x-2">
-            <BookOpen className="w-6 h-6 text-gray-400" />
+ 
+          <div>
             <Input
               type="text"
-              value={baseUrl}
-              readOnly
-              className="flex-1"
+              value="https://shamela.ws/book/{bookNumber}/{pageNumber}#p1" // This is the base URL and it is unchangeable
+              disabled // Makes the input field uneditable
+              className="w-full"
             />
           </div>
-          
+
+          {/* Other Input Fields */}
           <div className="flex space-x-2">
             <Input
               type="text"
-              placeholder="Book Number"
+              placeholder="Book Number (19188)"
               value={bookNumber}
               onChange={(e) => setBookNumber(e.target.value)}
               className="w-1/3"
+              defaultValue="19188" // Set default book number to 19188
             />
             <Input
               type="number"
@@ -95,16 +106,35 @@ export default function ShamelaPage() {
             />
           </div>
         </CardContent>
+
+
         <CardFooter className="flex justify-between">
-          <Button onClick={handleScrap} disabled={!bookNumber || !startPage || !endPage} className="flex-1 mr-2">
-            <Search className="w-4 h-4 mr-2" />
-            Scrap Book
-          </Button>
-          <Button onClick={handleViewDoc} variant="outline" className="flex-1 ml-2">
-            <Eye className="w-4 h-4 mr-2" />
-            View Document
+          <Button onClick={handleScrap} disabled={loading} className="flex-1">
+            {loading ? "Loading..." : <><Search className="w-4 h-4 mr-2" /> Scrap Book</>}
           </Button>
         </CardFooter>
+      </Card>
+
+      {/* Document History */}
+      <Card className="w-full max-w-lg">
+        <CardHeader>
+          <CardTitle className="text-2xl">Document History</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {history.length === 0 ? (
+            <p className="text-gray-500">No documents scraped yet.</p>
+          ) : (
+            <ul className="space-y-2">
+              {data.map((document: Document, index) => (
+                <div>
+                  <li key={index} className="flex items-center mt-5 space-x-2">{document.fileName}</li>
+                  <Button onClick={() => handleViewDocument(document.fileName)}>View Document</Button>
+                </div>
+                
+              ))}
+            </ul>
+          )}
+        </CardContent>
       </Card>
     </div>
   )
