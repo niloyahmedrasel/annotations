@@ -48,7 +48,7 @@ export default function ShamelaPage() {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const response = await fetch("http://lkp.pathok.com.bd/api/scraped-documents");
+        const response = await fetch("https://lkp.pathok.com.bd/api/scraped-documents");
         if (!response.ok) throw new Error("Failed to fetch history");
         const data = await response.json();
         console.log(data)
