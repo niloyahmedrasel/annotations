@@ -62,6 +62,7 @@ export default function BookDetailsPage({ params }: { params: { id: string } }) 
   }, [params.id])
 
   const handleOpenDoc = async () => {
+
     console.log("this is book",book)
     if (!book || !book?.bookFile) {
       console.error("Book file not found!");
@@ -72,6 +73,7 @@ export default function BookDetailsPage({ params }: { params: { id: string } }) 
     window.open(editorUrl, "_blank"); 
   };
   
+
 
   const handleDelete = async () => {
     try {
