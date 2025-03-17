@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { toast } from "react-toastify"
 
 const userFormSchema = z.object({
   name: z.string().min(2, {
@@ -36,9 +37,34 @@ export default function UserForm({ params }: { params: { id: string } }) {
     },
   })
 
-  function onSubmit(values: z.infer<typeof userFormSchema>) {
-    console.log(values)
+  async function onSubmit(values: z.infer<typeof userFormSchema>) {
+    
+    const user = JSON.parse(sessionStorage.getItem('user') || '{}'); 
+    const token = user.token; 
+    
+    const url = isNewUser
+      ? "https://lkp.pathok.com.bd/api/user" 
+      : `https://lkp.pathok.com.bd/api/user/${params.id}` 
+  
+    const method = isNewUser ? "POST" : "PUT";
+  
+    const response = await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`, 
+      },
+      body: JSON.stringify(values),
+    });
+  
+    if (response.ok) {
+      toast.success(isNewUser ? "User created successfully!" : "User updated successfully!");
+    } else {
+      toast.error("Something went wrong. Please try again.");
+    }
   }
+  
+  
 
   return (
     <div className="space-y-6">
@@ -97,9 +123,10 @@ export default function UserForm({ params }: { params: { id: string } }) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="book_organizer">Book Organizer</SelectItem>
-                    <SelectItem value="annotator">Annotator</SelectItem>
-                    <SelectItem value="reviewer">Reviewer</SelectItem>
+                    <SelectItem value="Super Admin">Super Admin</SelectItem>
+                    <SelectItem value="Book Organizer">Book Organizer</SelectItem>
+                    <SelectItem value="Annotator">Annotator</SelectItem>
+                    <SelectItem value="Reviewer">Reviewer</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />

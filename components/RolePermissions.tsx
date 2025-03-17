@@ -121,7 +121,7 @@ const RolePermissions = () => {
     }
 
     fetchPermissions()
-  }, [permissions])
+  }, [])
 
   const addNewPermission = async () => {
     if (!newPermission.category || !newPermission.action) {
