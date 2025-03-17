@@ -124,7 +124,7 @@ export default function UserForm({ params }: { params: { id: string } }) {
                   </FormControl>
                   <SelectContent>
                     <SelectItem value="Super Admin">Super Admin</SelectItem>
-                    <SelectItem value="Book Organizer">Book Organizer</SelectItem>
+                    <SelectItem value="Doc Organizer">Doc Organizer</SelectItem>
                     <SelectItem value="Annotator">Annotator</SelectItem>
                     <SelectItem value="Reviewer">Reviewer</SelectItem>
                   </SelectContent>
