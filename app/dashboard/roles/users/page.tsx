@@ -117,7 +117,7 @@ export default function UsersPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="All">All Roles</SelectItem>
-            <SelectItem value="Book Organizer">Book Organizer</SelectItem>
+            <SelectItem value="Doc Organizer">Doc Organizer</SelectItem>
             <SelectItem value="Annotator">Annotator</SelectItem>
             <SelectItem value="Reviewer">Reviewer</SelectItem>
           </SelectContent>
