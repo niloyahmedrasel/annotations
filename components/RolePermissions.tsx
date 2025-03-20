@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Plus, ChevronRight, ChevronDown } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { toast } from "react-toastify"
 
 interface Action {
   id: string
@@ -31,6 +32,7 @@ const RolePermissions = () => {
   const [permissionState, setPermissionState] = useState<PermissionState>({})
   const [newPermission, setNewPermission] = useState({ category: "", action: "" })
   const [expandedCategories, setExpandedCategories] = useState<string[]>([])
+  const [groupName, setGroupName] = useState("")
 
   const handlePermissionChange = async (actionId: string, role: string) => {
     try {
@@ -83,6 +85,37 @@ const RolePermissions = () => {
       }));
     }
   };
+
+  const addNewGroup = async () => {
+    if (!groupName.trim()) {
+      toast.error("Group name cannot be empty!")
+      return
+    }
+
+    try {
+      const user = JSON.parse(sessionStorage.getItem("user") || "{}")
+      const token = user.token
+
+      const response = await fetch("https://lkp.pathok.com.bd/api/permission/create-permission-group", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ category: groupName }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to create group")
+      }
+
+      toast.success("Group created successfully!")
+      setGroupName("") 
+    } catch (error:any) {
+      toast.error(error.message || "Something went wrong")
+    }
+  }
+
 
   useEffect(() => {
     const fetchPermissions = async () => {
@@ -185,6 +218,18 @@ const RolePermissions = () => {
 
   return (
     <div className="container mx-auto py-10">
+      <div className="flex">
+      <Input
+        placeholder="Create New Group"
+        className="w-1/3 mb-5 mr-2"
+        value={groupName}
+        onChange={(e) => setGroupName(e.target.value)}
+      />
+      <Button onClick={addNewGroup} className="whitespace-nowrap">
+        <Plus className="mr-2" /> Add New Group
+      </Button>
+    </div>
+      
       <div className="mb-6 flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
         <Select
           value={newPermission.category}
@@ -194,7 +239,7 @@ const RolePermissions = () => {
             {newPermission.category ? (
               <SelectValue>{newPermission.category}</SelectValue>
             ) : (
-              <span className="text-gray-400">Select category</span>
+              <span className="text-gray-400">Select Group</span>
             )}
           </SelectTrigger>
           <SelectContent>

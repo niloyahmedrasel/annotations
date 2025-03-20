@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { BookOpen, FileText, Users, Activity } from "lucide-react"
 import { RecentActivities } from "@/components/recent-activities"
 import { useDebugValue, useEffect, useState } from "react";
+import Link from "next/link";
 
 interface BookCount {
   count: number;
@@ -36,37 +37,41 @@ export default function DashboardPage() {
       <h1 className="text-3xl font-bold">Dashboard Overview</h1>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <Link href="/dashboard/books"><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Books</CardTitle>
             <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
+          </Link>
           <CardContent>
             <div className="text-2xl font-bold">{countBook.count}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <Link href="/dashboard/annotations"><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Annotations</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
+          </Link>
           <CardContent>
             <div className="text-2xl font-bold">-</div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+         <Link href="/dashboard/fatwas"><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Fatwas</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
+           </CardHeader>
+          </Link>
           <CardContent>
             <div className="text-2xl font-bold">-</div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <Link href="/dashboard/roles/users"><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Reviewers</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
+          </Link>
           <CardContent>
             <div className="text-2xl font-bold">-</div>
           </CardContent>

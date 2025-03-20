@@ -49,7 +49,6 @@ const navItems: NavItem[] = [
     icon: Users,
     roles: ["Super Admin"],
     submenu: [
-      { title: "Overview", href: "/dashboard/roles" },
       { title: "Users", href: "/dashboard/roles/users" },
       { title: "Permissions", href: "/dashboard/roles/permissions" },
     ],
