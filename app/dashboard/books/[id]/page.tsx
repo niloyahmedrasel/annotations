@@ -19,7 +19,7 @@ import Link from "next/link"
 import { toast } from "react-toastify"
 
 interface Book {
-  id: string
+  _id: string
   bookCover: string
   bookFile:string
   title: string
@@ -144,12 +144,16 @@ export default function BookDetailsPage({ params }: { params: { id: string } }) 
             <Button className="w-full" onClick={handleOpenDoc}>
               Open Doc
             </Button>
+            <Link href={`/dashboard/fatwas/new/${book._id}`} className="w-full "><Button className="w-full mt-4 text-black" variant="secondary">
+              create issue
+            </Button>
+            </Link>
             <Button variant="destructive" className="w-full" onClick={() => setIsDeleteDialogOpen(true)}>
               Delete
             </Button>
             <div>
-              <Link href={`/dashboard/books/process/${book.id}`}>
-                <Button variant="secondary" className="w-full">
+              <Link href={`/dashboard/books/process/${book._id}`}>
+                <Button disabled variant="secondary" className="w-full">
                   Process Book
                 </Button>
               </Link>
