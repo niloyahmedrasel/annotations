@@ -21,6 +21,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
+
+
 
 const bookFormSchema = z.object({
   title: z.string().min(2, { message: "Title must be at least 2 characters." }),
@@ -36,6 +39,7 @@ const bookFormSchema = z.object({
 });
 
 export default function NewBookPage() {
+  const router = useRouter();
   const form = useForm<z.infer<typeof bookFormSchema>>({
     resolver: zodResolver(bookFormSchema),
     defaultValues: {
@@ -47,6 +51,8 @@ export default function NewBookPage() {
       category: "",
     },
   });
+
+  
 
   async function onSubmit(values: z.infer<typeof bookFormSchema>) {
     const formData = new FormData();
@@ -78,7 +84,7 @@ export default function NewBookPage() {
       console.log("Success:", result);
       form.reset();
 
-      // Show a success toast
+      router.push("/dashboard/books")
       toast.success("Document submitted successfully!");
     } catch (error) {
       console.error("Error:", error);
