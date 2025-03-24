@@ -1,131 +1,129 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { Card, CardContent } from "@/components/ui/card";
-import mammoth from "mammoth";
+import { useEffect, useState, useRef } from 'react';
+import { useParams } from 'next/navigation';
+import mammoth from 'mammoth';
+import DOMPurify from 'dompurify';
 
-export default function NewFatwaPage() {
+const NewFatwaPage = () => {
   const { id } = useParams();
-  const router = useRouter();
-  const [selectedBook, setSelectedBook] = useState("");
-  const [title, setTitle] = useState("");
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [description, setDescription] = useState("");
-  const [bookContent, setBookContent] = useState<string | null>(null);
-  const [showContextMenu, setShowContextMenu] = useState(false);
-  const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
-  const [selectedText, setSelectedText] = useState<string>("");
+  const [content, setContent] = useState('');
+  const [selectedText, setSelectedText] = useState('');
+  const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
+  const [showMenu, setShowMenu] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log({ selectedBook, title, selectedTags, description });
-    router.push("/dashboard/fatwas");
-  };
-
+  // Fetch DOCX and convert to HTML
   useEffect(() => {
-    const user = sessionStorage.getItem("user");
-    const token = user ? JSON.parse(user).token : null;
+    const fetchDocument = async () => {
+      try {
+        const user = sessionStorage.getItem('user');
+        const token = user ? JSON.parse(user).token : null;
 
-    fetch(`https://lkp.pathok.com.bd/api/book/book-file/${id}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((response) => response.blob()) // Handle the response as a blob
-      .then((data) => {
-        // Convert the blob to ArrayBuffer
-        const reader = new FileReader();
-        reader.onload = () => {
-          const arrayBuffer = reader.result as ArrayBuffer;
+        const response = await fetch(
+          `https://lkp.pathok.com.bd/api/book/book-file/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
-          // Use mammoth to extract HTML from the .docx file
-          mammoth.convertToHtml({ arrayBuffer })
-            .then((result) => {
-              setBookContent(result.value); // Set the HTML content
-            })
-            .catch((error) => {
-              console.error("Error converting docx to HTML:", error);
-            });
-        };
-        reader.readAsArrayBuffer(data); // Read the file as ArrayBuffer
-      })
-      .catch((error) => {
-        console.error("Error fetching book:", error);
-      });
+        const arrayBuffer = await response.arrayBuffer();
+        const result = await mammoth.convertToHtml({ arrayBuffer });
+        const cleanHtml = DOMPurify.sanitize(result.value);
+        setContent(cleanHtml); // Set the sanitized HTML
+      } catch (error) {
+        console.error('Error loading document:', error);
+      }
+    };
+
+    if (id) fetchDocument();
   }, [id]);
 
-  const handleRightClick = (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent default context menu from showing
-    
-    const currentSelectedText = window.getSelection()?.toString(); // Get currently selected text
-
-    if (currentSelectedText) {
-      // Add the new selected text to the existing selected text
-      setSelectedText((prevText) => prevText + " " + currentSelectedText);
-      setShowContextMenu(true);
-      setContextMenuPosition({ x: e.pageX, y: e.pageY }); // Set the position of the context menu
+  // Handle right-click context menu
+  const handleContextMenu = (e: React.MouseEvent) => {
+    const selection = window.getSelection();
+    if (selection && selection.toString().trim()) {
+      e.preventDefault();
+      setSelectedText((prevText) => prevText + ' ' + selection.toString());
+      setMenuPosition({ x: e.pageX, y: e.pageY });
+      setShowMenu(true);
     }
   };
 
-  const handleCreateIssue = () => {
-    // Log the selected text
-    console.log("Selected Text:", selectedText);
-
-    setShowContextMenu(false); // Close the context menu after selecting the option
-  };
-
-  const handleClick = () => {
-    // Close the context menu if the user clicks anywhere else
-    setShowContextMenu(false);
-  };
-
+  // Close menu when clicking outside
   useEffect(() => {
-    document.addEventListener("click", handleClick);
-    return () => {
-      document.removeEventListener("click", handleClick);
-    };
+    const closeMenu = () => setShowMenu(false);
+    window.addEventListener('click', closeMenu);
+    return () => window.removeEventListener('click', closeMenu);
   }, []);
 
-  return (
-    <div className="flex h-screen bg-gray-900 text-gray-100">
-      {/* Left side: PDF Viewer */}
-      <div className="w-full sticky top-0 h-screen overflow-y-auto p-4">
-        <Card className="h-full bg-white text-black border-gray-700">
-          <CardContent className="flex items-center justify-center h-full">
-            <div
-              className="overflow-auto p-2 max-h-full"
-              onContextMenu={handleRightClick} // Show custom context menu on right-click
-            >
-              {/* Show the converted HTML content */}
-              {bookContent ? (
-                <div
-                  dangerouslySetInnerHTML={{ __html: bookContent }} // Set HTML content
-                  className="whitespace-pre-wrap break-words" // Ensures text wraps correctly and prevents overflow
-                />
-              ) : (
-                <p>Loading content...</p>
-              )}
-            </div>
+  // Handle create issue
+  const handleCreateIssue = () => {
+    console.log('Selected Text:', selectedText);
+    setShowMenu(false);
+  };
 
-            {/* Custom Context Menu */}
-            {showContextMenu && (
-              <div
-                className="absolute z-50 bg-white border shadow-lg rounded p-2"
-                style={{ left: `${contextMenuPosition.x}px`, top: `${contextMenuPosition.y}px` }}
-              >
-                <button
-                  onClick={handleCreateIssue}
-                  className="w-full text-black p-2 hover:bg-gray-200"
-                >
-                  Create Issue
-                </button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+  return (
+    <div
+      onContextMenu={handleContextMenu}
+      style={{
+        padding: '2rem',
+        minHeight: '100vh',
+        position: 'relative',
+      }}
+    >
+      {/* Document content */}
+      <div
+        ref={contentRef}
+        dangerouslySetInnerHTML={{ __html: content }}
+        style={{
+          maxWidth: '8.5in',
+          margin: '0 auto',
+          padding: '1in',
+          backgroundColor: 'white',
+          boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
+          minHeight: '11in',
+          overflow: 'auto', // Add this to handle overflow of content
+          whiteSpace: 'pre-wrap', // Ensure line breaks are respected
+          wordWrap: 'break-word', // Handle long words
+          lineHeight: '1.6', // Make text more readable
+          color: '#000000', // Set text color to pure black
+        }}
+      />
+
+      {/* Context menu */}
+      {showMenu && (
+        <div
+          style={{
+            position: 'absolute',
+            left: menuPosition.x,
+            top: menuPosition.y,
+            backgroundColor: 'white',
+            boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)',
+            zIndex: 1000,
+          }}
+        >
+          <button
+            onClick={handleCreateIssue}
+            style={{
+              padding: '8px 16px',
+              border: 'none',
+              background: 'none',
+              width: '100%',
+              textAlign: 'left',
+              cursor: 'pointer',
+              color: 'black', // Make the button text color black
+            }}
+            onMouseDown={(e) => e.preventDefault()}
+          >
+            Create Issue
+          </button>
+        </div>
+      )}
     </div>
   );
-}
+};
+
+export default NewFatwaPage;
