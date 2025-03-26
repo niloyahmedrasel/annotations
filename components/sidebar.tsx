@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -30,11 +32,14 @@ interface NavItem {
     title: string
     href: string
     roles?: string[]
+    submenu?: {
+      title: string
+      href: string
+      roles?: string[]
+    }[]
   }[]
   roles: string[]
 }
-
-
 
 const navItems: NavItem[] = [
   {
@@ -60,9 +65,16 @@ const navItems: NavItem[] = [
     roles: ["Super Admin", "Book Organizer"],
     submenu: [
       { title: "All Books", href: "/dashboard/books" },
-      { title: "Add New Book", href: "/dashboard/books/new", roles: ["Super Admin"] },
-      { title: "New Book Type", href: "/dashboard/books/new-type", roles: ["Super Admin"] },
-      { title: "Shamela Scrapper", href: "/dashboard/books/shamela", roles: ["Super Admin"] }
+      {
+        title: "Create Book",
+        href: "#",
+        roles: ["Super Admin"],
+        submenu: [
+          { title: "Upload Doc", href: "/dashboard/books/new" },
+          { title: "Shamela Scraper", href: "/dashboard/books/shamela" },
+          { title: "Upload PDF", href: "" },
+        ],
+      }
     ],
   },
   {
@@ -72,6 +84,7 @@ const navItems: NavItem[] = [
     roles: ["Super Admin", "Annotator"],
     submenu: [
       { title: "Issue Viewer", href: "/dashboard/fatwas" },
+      { title: "Create Issue", href: "/dashboard/fatwas/new" },
       { title: "Categories", href: "/dashboard/fatwas/categories" },
     ],
   },
@@ -129,32 +142,70 @@ interface SidebarProps {
 export function Sidebar({ onCollapse }: SidebarProps) {
   const pathname = usePathname()
   const [openSubmenus, setOpenSubmenus] = useState<Record<string, boolean>>({})
+  const [openNestedSubmenus, setOpenNestedSubmenus] = useState<Record<string, boolean>>({})
   const { user, logout } = useAuth()
   const router = useRouter()
   const [isCollapsed, setIsCollapsed] = useState(false)
 
+  // Update the isActive function to be more specific about which items are active
   const isActive = (item: NavItem) => {
     if (item.href === "/dashboard") {
       return pathname === "/dashboard"
     }
     if (item.submenu) {
-      return item.submenu.some((subitem) => pathname.startsWith(subitem.href))
+      return item.submenu.some((subitem) => {
+        if (subitem.submenu) {
+          return subitem.submenu.some((nestedItem) => pathname === nestedItem.href)
+        }
+        return pathname === subitem.href
+      })
     }
-    return pathname.startsWith(item.href)
+    return pathname === item.href
+  }
+
+  // Update the isSubitemActive function to be more specific
+  const isSubitemActive = (href: string) => {
+    return pathname === href
   }
 
   useEffect(() => {
     const currentOpenSubmenus: Record<string, boolean> = {}
+    const currentOpenNestedSubmenus: Record<string, boolean> = {}
+
     navItems.forEach((item) => {
-      if (item.submenu && isActive(item)) {
-        currentOpenSubmenus[item.title] = true
+      if (item.submenu) {
+        const hasActiveSubmenu = item.submenu.some((subitem) => {
+          if (subitem.submenu) {
+            const hasActiveNestedItem = subitem.submenu.some((nestedItem) => pathname.startsWith(nestedItem.href))
+            if (hasActiveNestedItem) {
+              currentOpenNestedSubmenus[subitem.title] = true
+              return true
+            }
+          }
+          return pathname.startsWith(subitem.href)
+        })
+
+        if (hasActiveSubmenu) {
+          currentOpenSubmenus[item.title] = true
+        }
       }
     })
+
     setOpenSubmenus(currentOpenSubmenus)
-  }, [pathname]) // Changed dependency to pathname
+    setOpenNestedSubmenus(currentOpenNestedSubmenus)
+  }, [pathname])
 
   const toggleSubmenu = (title: string) => {
     setOpenSubmenus((prev) => ({
+      ...prev,
+      [title]: !prev[title],
+    }))
+  }
+
+  const toggleNestedSubmenu = (e: React.MouseEvent, title: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setOpenNestedSubmenus((prev) => ({
       ...prev,
       [title]: !prev[title],
     }))
@@ -168,7 +219,21 @@ export function Sidebar({ onCollapse }: SidebarProps) {
   const filteredNavItems = navItems.filter((item) => {
     if (item.roles.includes(user?.role || "")) {
       if (item.submenu) {
-        item.submenu = item.submenu.filter((subitem) => !subitem.roles || subitem.roles.includes(user?.role || ""))
+        const filteredSubmenu = item.submenu
+          .filter((subitem) => !subitem.roles || subitem.roles.includes(user?.role || ""))
+          .map((subitem) => {
+            if (subitem.submenu) {
+              return {
+                ...subitem,
+                submenu: subitem.submenu.filter(
+                  (nestedItem) => !nestedItem.roles || nestedItem.roles.includes(user?.role || ""),
+                ),
+              }
+            }
+            return subitem
+          })
+
+        return filteredSubmenu.length > 0
       }
       return true
     }
@@ -179,10 +244,16 @@ export function Sidebar({ onCollapse }: SidebarProps) {
     onCollapse(isCollapsed)
   }, [isCollapsed, onCollapse])
 
+  // Modify the nested submenu click handler to prevent collapsing
+  const handleNestedItemClick = (e: React.MouseEvent, href: string) => {
+    // Don't stop propagation, just navigate
+    router.push(href)
+  }
+
   return (
     <div
       className={cn(
-        "fixed inset-y-0 z-50 flex flex-col bg-gray-950 border-r border-gray-800 transition-all duration-300 ease-in-out",
+        "fixed inset-y-0 left-0 z-50 flex flex-col bg-gray-950 border-r border-gray-800 transition-all duration-300 ease-in-out",
         isCollapsed ? "w-16" : "w-64",
       )}
     >
@@ -235,19 +306,63 @@ export function Sidebar({ onCollapse }: SidebarProps) {
                   </Link>
                 )}
               </Button>
+              {/* Update the submenu rendering to use the new handler and fix active states */}
               {!isCollapsed && item.submenu && openSubmenus[item.title] && (
                 <div className="mt-1 space-y-1 px-4">
                   {item.submenu.map((subitem) => (
-                    <Link
-                      key={subitem.href}
-                      href={subitem.href}
-                      className={cn(
-                        "block rounded-md py-2 pl-4 text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white",
-                        pathname === subitem.href && "bg-gray-800 text-white",
+                    <div key={subitem.title}>
+                      {subitem.submenu ? (
+                        <div>
+                          <div
+                            className={cn(
+                              "flex items-center justify-between rounded-md py-2 pl-4 text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white cursor-pointer",
+                              subitem.submenu.some((nestedItem) => pathname === nestedItem.href) &&
+                                "bg-gray-800 text-white",
+                            )}
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              toggleNestedSubmenu(e, subitem.title)
+                            }}
+                          >
+                            <span>{subitem.title}</span>
+                            <ChevronDown
+                              className={cn(
+                                "h-4 w-4 transition-transform",
+                                openNestedSubmenus[subitem.title] && "rotate-180",
+                              )}
+                            />
+                          </div>
+                          {openNestedSubmenus[subitem.title] && (
+                            <div className="ml-4 mt-1 space-y-1">
+                              {subitem.submenu.map((nestedItem) => (
+                                <Link
+                                  key={nestedItem.href}
+                                  href={nestedItem.href}
+                                  className={cn(
+                                    "block rounded-md py-2 pl-4 text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white",
+                                    pathname === nestedItem.href && "bg-gray-800 text-white",
+                                  )}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  {nestedItem.title}
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <Link
+                          href={subitem.href}
+                          className={cn(
+                            "block rounded-md py-2 pl-4 text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white",
+                            pathname === subitem.href && "bg-gray-800 text-white",
+                          )}
+                        >
+                          {subitem.title}
+                        </Link>
                       )}
-                    >
-                      {subitem.title}
-                    </Link>
+                    </div>
                   ))}
                 </div>
               )}
@@ -258,7 +373,7 @@ export function Sidebar({ onCollapse }: SidebarProps) {
       <div className="p-4 flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <User className="h-6 w-6 text-gray-400" />
-          {!isCollapsed && <span className="text-sm font-medium text-gray-300">{user?.name}</span>}
+          {!isCollapsed && <span className="text-sm font-medium text-gray-300">{user?.email}</span>}
         </div>
         <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
           <LogOut className="h-4 w-4 text-gray-400" />
