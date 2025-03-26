@@ -85,7 +85,6 @@ const navItems: NavItem[] = [
     submenu: [
       { title: "Issue Viewer", href: "/dashboard/fatwas" },
       { title: "Create Issue", href: "/dashboard/fatwas/new" },
-      { title: "Categories", href: "/dashboard/fatwas/categories" },
     ],
   },
   {
