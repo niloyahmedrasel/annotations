@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -10,98 +10,8 @@ import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Eye, Filter, Search, Plus, BookOpen, Calendar, FileText, ArrowUpDown, ExternalLink } from "lucide-react"
 
-const uploadedBook = [
-  {
-    id: "db1",
-    title: "Principles of Islamic Jurisprudence",
-    author: "Dr. Ahmad Ali",
-    date: "2023-05-15",
-    status: "Approved",
-    thumbnail: "https://via.placeholder.com/100x150?text=Book+1",
-  },
-  {
-    id: "db2",
-    title: "Compilation of Authentic Hadiths",
-    author: "Shaikh Muhammad Ibrahim",
-    date: "2023-04-10",
-    status: "In review",
-    thumbnail: "https://via.placeholder.com/100x150?text=Book+2",
-  },
-  {
-    id: "db3",
-    title: "Modern Islamic Finance",
-    author: "Dr. Fatima Hassan",
-    date: "2023-06-20",
-    status: "Not annotated",
-    thumbnail: "https://via.placeholder.com/100x150?text=Book+3",
-  },
-  {
-    id: "db4",
-    title: "Islamic Ethics in Contemporary Society",
-    author: "Dr. Yusuf Khan",
-    date: "2023-07-05",
-    status: "Need modification",
-    thumbnail: "https://via.placeholder.com/100x150?text=Book+4",
-  },
-  {
-    id: "db5",
-    title: "Tafsir of Surah Al-Baqarah",
-    author: "Shaikh Abdullah Rahman",
-    date: "2023-03-18",
-    status: "Rejected",
-    thumbnail: "https://via.placeholder.com/100x150?text=Book+5",
-  },
-]
 
-const shamelaDocuments = [
-  {
-    id: "sh1",
-    title: "Sahih Al-Bukhari",
-    author: "Imam Bukhari",
-    date: "2022-12-10",
-    status: "Approved",
-    shamelaId: "SH12345",
-    thumbnail: "https://via.placeholder.com/100x150?text=Shamela+1",
-  },
-  {
-    id: "sh2",
-    title: "Fiqh of Worship",
-    author: "Ibn Qudamah",
-    date: "2023-01-15",
-    status: "In review",
-    shamelaId: "SH23456",
-    thumbnail: "https://via.placeholder.com/100x150?text=Shamela+2",
-  },
-  {
-    id: "sh3",
-    title: "Ihya Ulum al-Din",
-    author: "Imam Al-Ghazali",
-    date: "2022-11-20",
-    status: "Not annotated",
-    shamelaId: "SH34567",
-    thumbnail: "https://via.placeholder.com/100x150?text=Shamela+3",
-  },
-  {
-    id: "sh4",
-    title: "Al-Muwatta",
-    author: "Imam Malik",
-    date: "2023-02-05",
-    status: "Need modification",
-    shamelaId: "SH45678",
-    thumbnail: "https://via.placeholder.com/100x150?text=Shamela+4",
-  },
-  {
-    id: "sh5",
-    title: "Tafsir Ibn Kathir",
-    author: "Ibn Kathir",
-    date: "2022-10-30",
-    status: "Rejected",
-    shamelaId: "SH56789",
-    thumbnail: "https://via.placeholder.com/100x150?text=Shamela+5",
-  },
-]
-
-const statusOptions = ["All Statuses", "Not annotated", "In review", "Approved", "Rejected", "Need modification"]
+const statusOptions = ["All Statuses", "In Review", "Published", "Unpublished"]
 
 export default function CreateIssuePage() {
  
@@ -115,7 +25,43 @@ export default function CreateIssuePage() {
   const [shSortOrder, setShSortOrder] = useState<"asc" | "desc">("desc")
   const [shFilterStatus, setShFilterStatus] = useState("All Statuses")
 
+  const [uploadedBook, setUploadedBook] = useState<any[]>([])
+  const [shamelaDocuments, setShamelaDocuments] = useState<any[]>([])
 
+
+ useEffect(() => {
+   
+   const user = sessionStorage.getItem("user")
+   const token = user ? JSON.parse(user).token : null
+   const fetchUploadedBook = async () => {
+    
+     try {
+       const response = await fetch("https://lkp.pathok.com.bd/api/book",{
+         headers: {
+           Authorization: `Bearer ${token}`,
+         },
+       })
+       const data = await response.json()
+       setUploadedBook(data.books)
+       console.log(data.books)
+     } catch (error) {
+       console.error("Error fetching uploaded book:", error)
+     }
+   }
+   fetchUploadedBook()
+
+   const fetchShamelaDocuments = async () => {
+     try {
+       const response = await fetch("https://lkp.pathok.com.bd/api/scraped-documents")
+       const data = await response.json()
+       setShamelaDocuments(data)
+       console.log(data)
+     } catch (error) {
+       console.error("Error fetching Shamela documents:", error)
+     }
+   }
+   fetchShamelaDocuments()
+ },[])
   const handleCreateIssue = (document: any) => {
     console.log("Creating issue for document:", document)
     alert(`Creating issue for: ${document.title}`)
@@ -147,7 +93,7 @@ export default function CreateIssuePage() {
   const filteredShDocuments = shamelaDocuments
     .filter((doc) => {
       const matchesSearch =
-        doc.title.toLowerCase().includes(shSearchTerm.toLowerCase()) ||
+        doc.fileName.toLowerCase().includes(shSearchTerm.toLowerCase()) ||
         doc.author.toLowerCase().includes(shSearchTerm.toLowerCase())
       const matchesStatus = shFilterStatus === "All Statuses" || doc.status === shFilterStatus
       return matchesSearch && matchesStatus
@@ -175,14 +121,12 @@ export default function CreateIssuePage() {
   }
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
-      case "Approved":
-        return "default"
-      case "In review":
+      case "In Review":
         return "secondary"
-      case "Rejected":
+      case "Unpublished":
         return "destructive"
-      case "Need modification":
-        return "outline" 
+      case "Published":
+        return "default" 
       default:
         return "destructive"
     }
@@ -194,7 +138,7 @@ export default function CreateIssuePage() {
       <div className="flex p-4">
         <div className="mr-4 flex-shrink-0">
           <img
-            src={document.thumbnail || "/placeholder.svg"}
+            src={document.bookCover || "/placeholder.svg"}
             alt={document.title}
             className="h-24 w-16 object-cover rounded-sm"
           />
@@ -208,7 +152,7 @@ export default function CreateIssuePage() {
             </Badge>
             <Badge variant="outline" className="text-xs">
               <Calendar className="mr-1 h-3 w-3" />
-              {document.date}
+              {document.createdAt}
             </Badge>
             {document.shamelaId && (
               <Badge variant="outline" className="text-xs">

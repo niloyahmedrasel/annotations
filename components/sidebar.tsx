@@ -372,7 +372,7 @@ export function Sidebar({ onCollapse }: SidebarProps) {
       <div className="p-4 flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <User className="h-6 w-6 text-gray-400" />
-          {!isCollapsed && <span className="text-sm font-medium text-gray-300">{user?.email}</span>}
+          {!isCollapsed && <span className="text-sm font-medium text-gray-300">{user?.name}</span>}
         </div>
         <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
           <LogOut className="h-4 w-4 text-gray-400" />
