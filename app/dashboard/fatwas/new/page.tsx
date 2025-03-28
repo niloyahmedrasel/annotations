@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Eye, Filter, Search, Plus, BookOpen, Calendar, FileText, ArrowUpDown, ExternalLink } from "lucide-react"
+import Link from "next/link"
 
 
 const statusOptions = ["All Statuses", "In Review", "Published", "Unpublished"]
@@ -89,12 +90,23 @@ export default function CreateIssuePage() {
       }
     })
 
+    const handleViewDocument = async (document: any) => {
+    if (document?.bookFile) {
+      const editorUrl = `https://test.pathok.com.bd/editor?fileName=${encodeURIComponent(document.bookFile)}&mode=edit`;
+      window.open(editorUrl, "_blank"); 
+      return;
+    }else if(document?.title){
+      const editorUrl = `https://test.pathok.com.bd/editor?fileName=${encodeURIComponent(document.title)}&mode=edit`;
+      window.open(editorUrl, "_blank"); 
+      return;
+    }
+  }
+
   // Filter and sort Shamela documents
   const filteredShDocuments = shamelaDocuments
     .filter((doc) => {
       const matchesSearch =
-        doc.fileName.toLowerCase().includes(shSearchTerm.toLowerCase()) ||
-        doc.author.toLowerCase().includes(shSearchTerm.toLowerCase())
+        doc.title.toLowerCase().includes(shSearchTerm.toLowerCase())
       const matchesStatus = shFilterStatus === "All Statuses" || doc.status === shFilterStatus
       return matchesSearch && matchesStatus
     })
@@ -134,14 +146,15 @@ export default function CreateIssuePage() {
 
   // Render document card
   const renderDocumentCard = (document: any) => (
+    console.log("this is document", document),
     <Card key={document.id} className="overflow-hidden transition-all hover:shadow-md">
       <div className="flex p-4">
         <div className="mr-4 flex-shrink-0">
-          <img
-            src={document.bookCover || "/placeholder.svg"}
-            alt={document.title}
-            className="h-24 w-16 object-cover rounded-sm"
-          />
+        <img
+          src={document.bookCover ? `https://lkp.pathok.com.bd/upload/${document.bookCover}` : "/placeholder.svg"}
+          alt={document.title}
+          className="h-24 w-16 object-cover rounded-sm"
+        />
         </div>
         <div className="flex-1">
           <h3 className="font-semibold line-clamp-2">{document.title}</h3>
@@ -161,18 +174,18 @@ export default function CreateIssuePage() {
             )}
           </div>
           <div className="mt-3 flex space-x-2">
-            <Button variant="outline" size="sm" className="flex-1">
+            <Button onClick={() => handleViewDocument(document)} variant="outline" size="sm" className="flex-1">
               <Eye className="mr-1 h-3 w-3" />
               View
             </Button>
-            <Button 
+            <Link href={`/dashboard/fatwas/new/${document._id}`}><Button 
               size="sm" 
               className="flex-1" 
-              onClick={() => handleCreateIssue(document)}
             >
               <Plus className="mr-1 h-3 w-3" />
               Create Issue
             </Button>
+            </Link>
           </div>
         </div>
       </div>

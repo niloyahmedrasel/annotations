@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { BookOpen, Search } from "lucide-react"
 
 interface Document {
-  fileName: string;
+  title: string;
 }
 export default function ShamelaPage() {
   const [bookNumber, setBookNumber] = useState("")
@@ -127,8 +127,8 @@ export default function ShamelaPage() {
             <ul className="space-y-2">
               {data.map((document: Document, index) => (
                 <div>
-                  <li key={index} className="flex items-center mt-5 space-x-2">{document.fileName}</li>
-                  <Button onClick={() => handleViewDocument(document.fileName)}>View Document</Button>
+                  <li key={index} className="flex items-center mt-5 space-x-2">{document.title}</li>
+                  <Button onClick={() => handleViewDocument(document.title)}>View Document</Button>
                 </div>
                 
               ))}
