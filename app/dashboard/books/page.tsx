@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
-import { BookOpen, User, Tag } from "lucide-react"
+import { BookOpen, User, Tag, Edit, Eye } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -18,7 +18,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { useAuth } from "@/components/auth-provider"
-import Image from "next/image"
 
 interface Book {
   id: string
@@ -47,19 +46,19 @@ export default function BooksPage() {
   useEffect(() => {
     const fetchBooks = async () => {
       try {
-        const user = sessionStorage.getItem("user");
-        const token = user ? JSON.parse(user).token : null;
+        const user = sessionStorage.getItem("user")
+        const token = user ? JSON.parse(user).token : null
         const response = await fetch("https://lkp.pathok.com.bd/api/book", {
           headers: { Authorization: `Bearer ${token}` },
-        });
-  
+        })
+
         if (!response.ok) {
-          throw new Error("Failed to fetch books");
+          throw new Error("Failed to fetch books")
         }
-  
-        const data = await response.json();
-        console.log(data);
-  
+
+        const data = await response.json()
+        console.log(data)
+
         // Map API response to match the expected structure
         const formattedBooks = data.books.map((book: any) => ({
           id: book._id, // Assuming the API uses `_id`
@@ -69,19 +68,18 @@ export default function BooksPage() {
           type: book.type, // Consider fetching type names separately if needed
           status: "Published", // The API response doesn't have a status field; adjust accordingly
           categories: [book.category], // Converting category from string to an array
-        }));
-  
-        setBooks(formattedBooks);
+        }))
+
+        setBooks(formattedBooks)
       } catch (error) {
-        setError((error as Error).message);
+        setError((error as Error).message)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
-  
-    fetchBooks();
-  }, []);
-  
+    }
+
+    fetchBooks()
+  }, [])
 
   const openDeleteDialog = (book: Book) => {
     setBookToDelete(book)
@@ -204,9 +202,16 @@ export default function BooksPage() {
                       {book.status}
                     </Badge>
                   </CardContent>
-                  <CardFooter className="p-4">
-                    <Button variant="default" size="sm" asChild>
-                      <Link href={`/dashboard/books/${book.id}`}>View Book</Link>
+                  <CardFooter className="p-4 flex gap-2">
+                    <Button variant="default" size="sm" asChild className="flex-1">
+                      <Link href={`/dashboard/books/${book.id}`}>
+                        <Eye className="w-4 h-4 mr-1" /> View
+                      </Link>
+                    </Button>
+                    <Button variant="secondary" size="sm" asChild className="flex-1">
+                      <Link href={`/dashboard/books/new?id=${book.id}`}>
+                        <Edit className="w-4 h-4 mr-1" /> Edit
+                      </Link>
                     </Button>
                   </CardFooter>
                 </Card>
@@ -235,10 +240,10 @@ export default function BooksPage() {
                 Delete
               </Button>
             </div>
-            
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   )
 }
+

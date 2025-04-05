@@ -6,6 +6,7 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -14,14 +15,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { BookOpen, FileText, Tag } from "lucide-react"
+import { BookOpen, FileText, Tag, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { toast } from "react-toastify"
 
 interface Book {
   _id: string
   bookCover: string
-  bookFile:string
+  bookFile: string
   title: string
   author: string
   type: string
@@ -29,72 +30,128 @@ interface Book {
   category: string
   description: string
   pdfUrl: string
+  isAvailableForModification?: boolean
+  isAvailableForAnnotation?: boolean
+  isAvailableForPublicReading?: boolean
 }
 
 export default function BookDetailsPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const [book, setBook] = useState<Book | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  // Add these state variables after the other useState declarations
+  const [modificationChecked, setModificationChecked] = useState(false)
+  const [annotationChecked, setAnnotationChecked] = useState(false)
+  const [publicReadingChecked, setPublicReadingChecked] = useState(false)
 
   useEffect(() => {
     if (!params.id) return
 
     const fetchBook = async () => {
       try {
-        console.log(params.id)
+        setIsLoading(true)
         const user = sessionStorage.getItem("user")
         const token = user ? JSON.parse(user).token : null
+
+        if (!token) {
+          toast.error("Authentication required")
+          router.push("/login")
+          return
+        }
+
         const response = await fetch(`https://lkp.pathok.com.bd/api/book/${params.id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         })
+
         if (!response.ok) throw new Error("Failed to fetch book data")
+
         const data = await response.json()
-        console.log(data)
         setBook(data.book)
       } catch (error) {
         console.error("Error fetching book:", error)
+        toast.error("Failed to load book details")
+      } finally {
+        setIsLoading(false)
       }
     }
 
     fetchBook()
-  }, [params.id])
+  }, [params.id, router])
+
+  // Add this useEffect to initialize the checkbox states from the book data
+  useEffect(() => {
+    if (book) {
+      setModificationChecked(book.isAvailableForModification || false)
+      setAnnotationChecked(book.isAvailableForAnnotation || false)
+      setPublicReadingChecked(book.isAvailableForPublicReading || false)
+    }
+  }, [book])
 
   const handleOpenDoc = async () => {
-
-    console.log("this is book",book)
     if (!book || !book?.bookFile) {
-      console.error("Book file not found!");
-      return;
+      toast.error("Book file not found!")
+      return
     }
-  
-    const editorUrl = `https://test.pathok.com.bd/editor?fileName=${encodeURIComponent(book.bookFile)}&mode=edit`;
-    window.open(editorUrl, "_blank"); 
-  };
-  
 
+    const editorUrl = `https://test.pathok.com.bd/editor?fileName=${encodeURIComponent(book.bookFile)}&mode=edit`
+    window.open(editorUrl, "_blank")
+  }
 
   const handleDelete = async () => {
     try {
+      setIsDeleting(true)
       const user = sessionStorage.getItem("user")
       const token = user ? JSON.parse(user).token : null
-      await fetch(`https://lkp.pathok.com.bd/api/book/${params.id}`, {
+
+      if (!token) {
+        toast.error("Authentication required")
+        return
+      }
+
+      const response = await fetch(`https://lkp.pathok.com.bd/api/book/${params.id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       })
+
+      if (!response.ok) {
+        throw new Error("Failed to delete book")
+      }
+
       setIsDeleteDialogOpen(false)
       toast.success("Book deleted successfully")
       router.push("/dashboard/books")
     } catch (error) {
       console.error("Error deleting book:", error)
+      toast.error("Failed to delete book")
+    } finally {
+      setIsDeleting(false)
     }
   }
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-primary mr-2" />
+        <span>Loading book details...</span>
+      </div>
+    )
+  }
+
   if (!book) {
-    return <div className="text-center py-10">Loading...</div>
+    return (
+      <div className="text-center py-10">
+        <h2 className="text-2xl font-bold mb-4">Book Not Found</h2>
+        <p className="mb-6">The book you're looking for could not be found.</p>
+        <Button onClick={() => router.push("/dashboard/books")}>Back to Books</Button>
+      </div>
+    )
   }
 
   return (
@@ -106,10 +163,15 @@ export default function BookDetailsPage({ params }: { params: { id: string } }) 
           <CardContent className="p-4">
             <div className="relative aspect-[3/4] w-full">
               <Image
-                src={book.bookCover ? `https://lkp.pathok.com.bd/upload/${book.bookCover}` : "/placeholder.svg"}
+                src={
+                  book.bookCover
+                    ? `https://lkp.pathok.com.bd/upload/${book.bookCover}`
+                    : "/placeholder.svg?height=400&width=300"
+                }
                 alt={`${book.title} cover`}
                 fill
-                className="rounded-lg"
+                className="rounded-lg object-cover"
+                sizes="(max-width: 768px) 100vw, 300px"
               />
             </div>
           </CardContent>
@@ -129,12 +191,53 @@ export default function BookDetailsPage({ params }: { params: { id: string } }) 
               <Badge variant={book.status === "Published" ? "default" : "secondary"}>{book.status}</Badge>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Badge variant="outline" className="flex items-center space-x-1">
-                <Tag className="w-3 h-3" />
-                <span>{book.category}</span>
-              </Badge>
+              {book.category && (
+                <Badge variant="outline" className="flex items-center space-x-1">
+                  <Tag className="w-3 h-3" />
+                  <span>{book.category}</span>
+                </Badge>
+              )}
             </div>
-            <p className="text-gray-600">{book.description}</p>
+            <p className="text-gray-600">{book.description || "No description available"}</p>
+
+            {/* Replace the Availability Settings section with this updated version */}
+            <div className="mt-6 space-y-3 border-t pt-4">
+              <h3 className="font-medium text-lg">Availability Settings</h3>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="availableForModification"
+                    checked={modificationChecked}
+                    onCheckedChange={(checked) => setModificationChecked(checked === true)}
+                  />
+                  <label htmlFor="availableForModification" className="text-sm font-medium leading-none">
+                    Available for doc modification
+                  </label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="availableForAnnotation"
+                    checked={annotationChecked}
+                    onCheckedChange={(checked) => setAnnotationChecked(checked === true)}
+                  />
+                  <label htmlFor="availableForAnnotation" className="text-sm font-medium leading-none">
+                    Available for annotation
+                  </label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="availableForPublicReading"
+                    checked={publicReadingChecked}
+                    onCheckedChange={(checked) => setPublicReadingChecked(checked === true)}
+                  />
+                  <label htmlFor="availableForPublicReading" className="text-sm font-medium leading-none">
+                    Available for public reading
+                  </label>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
@@ -144,20 +247,18 @@ export default function BookDetailsPage({ params }: { params: { id: string } }) 
             <Button className="w-full" onClick={handleOpenDoc}>
               Open Doc
             </Button>
-            <Link href={`/dashboard/fatwas/new/${book._id}`}><Button className="w-full mt-4 text-black" variant="secondary">
-              create issue
+
+            <Button className="w-full" variant="secondary" asChild>
+              <Link href={`/dashboard/fatwas/new/${book._id}`}>Create Issue</Link>
             </Button>
-            </Link>
+
             <Button variant="destructive" className="w-full" onClick={() => setIsDeleteDialogOpen(true)}>
               Delete
             </Button>
-            <div>
-              <Link href={`/dashboard/books/process/${book._id}`}>
-                <Button disabled variant="secondary" className="w-full">
-                  Process Book
-                </Button>
-              </Link>
-            </div>
+
+            <Button variant="secondary" className="w-full" disabled asChild>
+              <Link href={`/dashboard/books/process/${book._id}`}>Process Book</Link>
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -172,11 +273,18 @@ export default function BookDetailsPage({ params }: { params: { id: string } }) 
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)} disabled={isDeleting}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDelete}>
-              Delete
+            <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -184,3 +292,4 @@ export default function BookDetailsPage({ params }: { params: { id: string } }) 
     </div>
   )
 }
+
