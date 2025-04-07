@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { nanoid } from "nanoid"
 
+// Types for our selections
 interface TextSelection {
   id: string
   text: string
@@ -21,21 +22,42 @@ interface TextSelection {
   highlightElements: HTMLElement[]
 }
 
+// Custom context menu component
 const ContextMenu = ({
   position,
   onClose,
   onCreateIssue,
+  documentData = {}, // Renamed from 'document' to 'documentData'
+  selection = "", // Add selection parameter with default empty string
 }: {
   position: { x: number; y: number }
   onClose: () => void
   onCreateIssue: (formData: any) => void
+  documentData?: any // Renamed parameter type
+  selection?: string
 }) => {
-  const [title, setTitle] = useState("")
-  const [category, setCategory] = useState("")
+  // Pre-populate title with selection text (truncated if too long)
+  const defaultTitle = selection ? (selection.length > 50 ? selection.substring(0, 47) + "..." : selection) : ""
+
+  const [title, setTitle] = useState(defaultTitle)
+  const [tags, setTags] = useState<string[]>(["issue", "review"]) // Default tags
   const [priority, setPriority] = useState("")
   const [notes, setNotes] = useState("")
   const menuRef = useRef<HTMLDivElement>(null)
 
+  // Mock data for automated fields (in a real implementation, these would come from the document metadata)
+  const bookInfo = {
+    name: "Sample Book",
+    volume: "1",
+    page: "42",
+    chapter: "Introduction to Islamic Jurisprudence",
+    subChapter: "Basic Principles",
+    bookNumber: "B-123",
+    lineNumber: "15",
+    wordNumber: "7",
+  }
+
+  // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -43,7 +65,7 @@ const ContextMenu = ({
       }
     }
 
-    document.addEventListener("mousedown", handleClickOutside)
+    document.addEventListener("mousedown", handleClickOutside) // Now using global document
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [onClose])
 
@@ -51,10 +73,26 @@ const ContextMenu = ({
     e.preventDefault()
     onCreateIssue({
       title,
-      category,
+      bookInfo,
+      tags,
       priority,
       notes,
+      selectedText: selection,
     })
+  }
+
+  // Handle tag input
+  const [tagInput, setTagInput] = useState("")
+
+  const addTag = () => {
+    if (tagInput.trim() && !tags.includes(tagInput.trim())) {
+      setTags([...tags, tagInput.trim()])
+      setTagInput("")
+    }
+  }
+
+  const removeTag = (tagToRemove: string) => {
+    setTags(tags.filter((tag) => tag !== tagToRemove))
   }
 
   return (
@@ -64,9 +102,11 @@ const ContextMenu = ({
       style={{
         left: position.x,
         top: position.y,
-        width: "320px",
+        width: "400px", // Increased width to accommodate more fields
         transform: "translate(-50%, 10px)",
         animation: "fadeIn 0.2s ease-out",
+        maxHeight: "90vh",
+        overflowY: "auto",
       }}
     >
       <div className="p-4">
@@ -75,56 +115,82 @@ const ContextMenu = ({
         </h3>
 
         <form onSubmit={handleSubmit} className="space-y-3">
+          {/* Title (simple input field) */}
           <div>
+            <label className="block text-sm font-medium mb-1">Title</label>
             <input
               type="text"
-              placeholder="Issue Title"
+              placeholder="Enter issue title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="w-full px-3 py-2 bg-white/50 dark:bg-gray-800/50 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
             />
           </div>
 
+          {/* Name of the book: volume: page (automated) */}
           <div>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full px-3 py-2 bg-white/50 dark:bg-gray-800/50 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
-            >
-              <option value="">Select Category</option>
-              <option value="content">Content Error</option>
-              <option value="formatting">Formatting Issue</option>
-              <option value="translation">Translation Needed</option>
-              <option value="reference">Missing Reference</option>
-            </select>
+            <label className="block text-sm font-medium mb-1">Book Information</label>
+            <div className="px-3 py-2 bg-white/30 dark:bg-gray-800/30 rounded-lg border border-gray-300 dark:border-gray-600 text-sm">
+              {bookInfo.name}: Volume {bookInfo.volume}, Page {bookInfo.page}
+            </div>
           </div>
 
+          {/* Original book Chapter/sub-chapter name (automated) */}
           <div>
-            <select
-              value={priority}
-              onChange={(e) => setPriority(e.target.value)}
-              className="w-full px-3 py-2 bg-white/50 dark:bg-gray-800/50 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
-            >
-              <option value="">Select Priority</option>
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-              <option value="critical">Critical</option>
-            </select>
+            <label className="block text-sm font-medium mb-1">Chapter Information</label>
+            <div className="px-3 py-2 bg-white/30 dark:bg-gray-800/30 rounded-lg border border-gray-300 dark:border-gray-600 text-sm">
+              {bookInfo.chapter} / {bookInfo.subChapter}
+            </div>
           </div>
 
+          {/* Tags (automated, editable) */}
           <div>
-            <textarea
-              placeholder="Additional Notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-3 py-2 bg-white/50 dark:bg-gray-800/50 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all resize-none h-20"
-            />
+            <label className="block text-sm font-medium mb-1">Tags</label>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 rounded-full text-xs flex items-center"
+                >
+                  {tag}
+                  <button
+                    type="button"
+                    onClick={() => removeTag(tag)}
+                    className="ml-1 text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+            <div className="flex">
+              <input
+                type="text"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                placeholder="Add a tag"
+                className="flex-1 px-3 py-2 bg-white/50 dark:bg-gray-800/50 rounded-l-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all text-sm"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault()
+                    addTag()
+                  }
+                }}
+              />
+              <button
+                type="button"
+                onClick={addTag}
+                className="px-3 py-2 bg-purple-500 text-white rounded-r-lg hover:bg-purple-600 transition-colors text-sm"
+              >
+                Add
+              </button>
+            </div>
           </div>
 
+          {/* Create Issue Button - Made more prominent */}
           <button
             type="submit"
-            className="w-full py-2 px-4 rounded-lg font-medium text-white bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-md"
+            className="w-full py-3 px-4 mt-4 rounded-lg font-medium text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg text-lg"
           >
             Create Issue
           </button>
@@ -144,11 +210,13 @@ export default function NewFatwaPage() {
   const [showMenu, setShowMenu] = useState(false)
   const contentRef = useRef<HTMLDivElement>(null)
 
+  // Dynamically import mammoth and DOMPurify to avoid SSR issues
   useEffect(() => {
     const loadDocument = async () => {
       try {
         setLoading(true)
 
+        // Get token from session storage
         const user = sessionStorage.getItem("user")
         const token = user ? JSON.parse(user).token : null
 
@@ -157,6 +225,8 @@ export default function NewFatwaPage() {
           setLoading(false)
           return
         }
+
+        // Fetch the document
         const response = await fetch(`https://lkp.pathok.com.bd/api/book/book-file/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -166,8 +236,11 @@ export default function NewFatwaPage() {
         if (!response.ok) {
           throw new Error(`Failed to fetch document: ${response.status} ${response.statusText}`)
         }
+
+        // Convert document to HTML
         const arrayBuffer = await response.arrayBuffer()
 
+        // Dynamically import mammoth and DOMPurify
         const [mammoth, DOMPurifyModule] = await Promise.all([import("mammoth"), import("dompurify")])
 
         const DOMPurify = DOMPurifyModule.default
@@ -187,6 +260,8 @@ export default function NewFatwaPage() {
       loadDocument()
     }
   }, [id])
+
+  // Handle text selection
   useEffect(() => {
     const handleSelection = () => {
       const selection = window.getSelection()
@@ -196,6 +271,8 @@ export default function NewFatwaPage() {
       const selectedText = selection.toString().trim()
 
       if (!selectedText) return
+
+      // Create a new selection object
       const newSelection: TextSelection = {
         id: nanoid(),
         text: selectedText,
@@ -207,8 +284,14 @@ export default function NewFatwaPage() {
         },
         highlightElements: [],
       }
+
+      // Highlight the selected text
       highlightRange(range, newSelection)
+
+      // Add to selections
       setSelections((prev) => [...prev, newSelection])
+
+      // Clear the selection to allow for new selections
       selection.removeAllRanges()
     }
 
@@ -224,12 +307,18 @@ export default function NewFatwaPage() {
     }
   }, [content])
 
+  // Function to highlight a range of text
   const highlightRange = (range: Range, selection: TextSelection) => {
     const highlightElements: HTMLElement[] = []
+
+    // Create a document fragment from the range
     const fragment = range.cloneContents()
+
+    // Create a temporary container
     const tempContainer = document.createElement("div")
     tempContainer.appendChild(fragment)
 
+    // Create a highlight span
     const highlightSpan = document.createElement("span")
     highlightSpan.className = "highlighted-text"
     highlightSpan.dataset.selectionId = selection.id
@@ -237,14 +326,20 @@ export default function NewFatwaPage() {
     highlightSpan.style.boxShadow = "0 0 2px rgba(255, 255, 0, 0.8)"
     highlightSpan.style.borderRadius = "2px"
     highlightSpan.style.padding = "0 2px"
+
+    // Replace the selected content with the highlighted version
     highlightSpan.innerHTML = tempContainer.innerHTML
     range.deleteContents()
     range.insertNode(highlightSpan)
 
+    // Add to highlight elements
     highlightElements.push(highlightSpan)
 
+    // Update the selection object
     selection.highlightElements = highlightElements
   }
+
+  // Handle right-click context menu
   const handleContextMenu = (e: React.MouseEvent) => {
     if (selections.length === 0) return
 
@@ -256,19 +351,27 @@ export default function NewFatwaPage() {
     setShowMenu(true)
   }
 
+  // Handle create issue
   const handleCreateIssue = (formData: any) => {
+    // Combine all selected text into a single string
     const combinedText = selections.map((s) => s.text).join(" ")
+
+    // Log the form data with combined text
     console.log({
       ...formData,
       selectedText: combinedText,
     })
 
+    // Close the menu
     setShowMenu(false)
+
+    // Clear all selections after creating issue
     clearSelections()
   }
 
+  // Clear all selections
   const clearSelections = () => {
-    
+    // Remove all highlight elements from the DOM
     selections.forEach((selection) => {
       selection.highlightElements.forEach((el) => {
         if (el.parentNode) {
@@ -281,13 +384,18 @@ export default function NewFatwaPage() {
       })
     })
 
+    // Clear selections state
     setSelections([])
   }
 
+  // Add a new function to clear only the previous selection
   const clearPreviousSelection = () => {
     if (selections.length === 0) return
+
+    // Get the last selection
     const lastSelection = selections[selections.length - 1]
 
+    // Remove its highlight elements from the DOM
     lastSelection.highlightElements.forEach((el) => {
       if (el.parentNode) {
         const parent = el.parentNode
@@ -297,6 +405,8 @@ export default function NewFatwaPage() {
         parent.removeChild(el)
       }
     })
+
+    // Remove the last selection from the state
     setSelections((prev) => prev.slice(0, -1))
   }
 
@@ -331,60 +441,116 @@ export default function NewFatwaPage() {
           <Button variant="outline" onClick={clearSelections} disabled={selections.length === 0}>
             Clear All
           </Button>
-          <Button onClick={() => console.log(selections.map((s) => s.text))} disabled={selections.length === 0}>
-            Log Selections
-          </Button>
         </div>
       </div>
 
-      {selections.length > 0 && (
-        <div className="mb-4 p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg inline-block">
-          <span className="font-medium">
-            {selections.length} text selection{selections.length !== 1 ? "s" : ""}
-          </span>
+      {/* Main content area with selections panel and document */}
+      <div className="flex flex-col md:flex-row gap-4">
+        {/* Selections panel - left side */}
+        <div className="w-full md:w-1/4 bg-gray-800 rounded-lg p-4">
+          <h2 className="text-lg font-semibold mb-4">Selected Text ({selections.length})</h2>
+          {selections.length === 0 ? (
+            <p className="text-gray-400 text-sm italic">
+              No text selected yet. Select text from the document to add it here.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {selections.map((selection, index) => (
+                <div key={selection.id} className="bg-gray-700 rounded-md p-3 relative">
+                  <p className="text-sm pr-8">"{selection.text}"</p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute top-2 right-2 h-6 w-6 p-0"
+                    onClick={() => {
+                      // Remove this specific selection
+                      const selectionToRemove = selections[index]
+                      selectionToRemove.highlightElements.forEach((el) => {
+                        if (el.parentNode) {
+                          const parent = el.parentNode
+                          while (el.firstChild) {
+                            parent.insertBefore(el.firstChild, el)
+                          }
+                          parent.removeChild(el)
+                        }
+                      })
+                      setSelections((prev) => prev.filter((s) => s.id !== selectionToRemove.id))
+                    }}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="lucide lucide-x"
+                    >
+                      <path d="M18 6 6 18" />
+                      <path d="m6 6 12 12" />
+                    </svg>
+                    <span className="sr-only">Remove selection</span>
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      )}
 
-      <div
-        ref={contentRef}
-        onContextMenu={handleContextMenu}
-        style={{
-          maxWidth: "8.5in",
-          margin: "0 auto",
-          padding: "1in",
-          backgroundColor: "white",
-          boxShadow: "0 0 20px rgba(0, 0, 0, 0.1)",
-          minHeight: "11in",
-          borderRadius: "8px",
-          position: "relative",
-        }}
-      >
-        <div
-          dangerouslySetInnerHTML={{ __html: content }}
-          style={{
-            overflow: "auto",
-            whiteSpace: "pre-wrap",
-            wordWrap: "break-word",
-            lineHeight: "1.6",
-            color: "#000000",
-          }}
-        />
+        {/* Document content - right side */}
+        <div className="w-full md:w-3/4">
+          <div
+            ref={contentRef}
+            onContextMenu={handleContextMenu}
+            style={{
+              maxWidth: "100%",
+              margin: "0 auto",
+              padding: "1in",
+              backgroundColor: "white",
+              boxShadow: "0 0 20px rgba(0, 0, 0, 0.1)",
+              minHeight: "11in",
+              borderRadius: "8px",
+              position: "relative",
+            }}
+          >
+            <div
+              dangerouslySetInnerHTML={{ __html: content }}
+              style={{
+                overflow: "auto",
+                whiteSpace: "pre-wrap",
+                wordWrap: "break-word",
+                lineHeight: "1.6",
+                color: "#000000",
+              }}
+            />
+          </div>
+        </div>
       </div>
 
+      {/* Custom Context Menu */}
       {showMenu && (
-        <ContextMenu position={menuPosition} onClose={() => setShowMenu(false)} onCreateIssue={handleCreateIssue} />
+        <ContextMenu
+          position={menuPosition}
+          onClose={() => setShowMenu(false)}
+          onCreateIssue={handleCreateIssue}
+          selection={selections.map((s) => s.text).join(" ")}
+        />
       )}
 
+      {/* Add custom styles */}
       <style jsx global>{`
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(10px); }
           to { opacity: 1; transform: translateY(0); }
         }
-        
+
         .highlighted-text {
           transition: background-color 0.2s ease;
         }
-        
+
         .highlighted-text:hover {
           background-color: rgba(255, 255, 0, 0.6) !important;
         }

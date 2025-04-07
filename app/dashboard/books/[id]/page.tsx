@@ -256,7 +256,7 @@ export default function BookDetailsPage({ params }: { params: { id: string } }) 
               Delete
             </Button>
 
-            <Button variant="secondary" className="w-full" disabled asChild>
+            <Button variant="secondary" className="w-full" disabled>
               <Link href={`/dashboard/books/process/${book._id}`}>Process Book</Link>
             </Button>
           </CardContent>

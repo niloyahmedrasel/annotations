@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ChevronUp, ChevronDown } from "lucide-react"
+import { toast } from "react-toastify"
 
 interface User {
   _id: string
@@ -56,6 +57,27 @@ export default function UsersPage() {
 
     fetchUsers()
   }, [])
+
+  const deleteUser = async(userId:string)=>{
+    const user = sessionStorage.getItem("user")
+    const token = user ? JSON.parse(user).token : null
+    if (!token) {
+      setError("No authentication token found.")
+      setLoading(false)
+      return
+    }
+
+    try {
+      const response = await fetch(`https://lkp.pathok.com.bd/api/user/${userId}`, {
+        method:"DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!response.ok) throw new Error("User not deleted")
+      toast.success("User Deleted Succesfully")
+    } catch (err) {
+      setError((err as any).message)
+    }
+  }
 
   const filteredAndSortedUsers = useMemo(() => {
     return users
@@ -142,6 +164,7 @@ export default function UsersPage() {
                 <Button variant="ghost" size="sm" asChild>
                   <Link href={`/dashboard/roles/users/${user._id}`}>Edit</Link>
                 </Button>
+                <Button onClick={()=>deleteUser(user._id)} variant="ghost" size="sm">Delete</Button>
                 <Button variant="ghost" size="sm" onClick={() => toggleFreeze(user._id)}>
                   {frozenUsers.includes(user._id) ? "Unfreeze" : "Freeze"}
                 </Button>
