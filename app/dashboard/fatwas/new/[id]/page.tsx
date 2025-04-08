@@ -8,6 +8,7 @@ import { Loader2 } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { nanoid } from "nanoid"
+import { toast } from "react-toastify"
 
 // Types for our selections
 interface TextSelection {
@@ -45,16 +46,14 @@ const ContextMenu = ({
   const [notes, setNotes] = useState("")
   const menuRef = useRef<HTMLDivElement>(null)
 
-  // Mock data for automated fields (in a real implementation, these would come from the document metadata)
+  // Get data from documents state
   const bookInfo = {
-    name: "Sample Book",
-    volume: "1",
-    page: "42",
-    chapter: "Introduction to Islamic Jurisprudence",
-    subChapter: "Basic Principles",
-    bookNumber: "B-123",
-    lineNumber: "15",
-    wordNumber: "7",
+    bookNumber: documentData.bookNumber || "N/A",
+    volume: documentData.volume || "N/A",
+    page: documentData.pageNumber || "N/A",
+    chapter: documentData.chapter || "N/A",
+    lineNumber: documentData.lineNumber || "N/A",
+    wordNumber: documentData.wordNumber || "N/A",
   }
 
   // Close menu when clicking outside
@@ -75,8 +74,6 @@ const ContextMenu = ({
       title,
       bookInfo,
       tags,
-      priority,
-      notes,
       selectedText: selection,
     })
   }
@@ -121,7 +118,6 @@ const ContextMenu = ({
             <input
               type="text"
               placeholder="Enter issue title"
-              value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="w-full px-3 py-2 bg-white/50 dark:bg-gray-800/50 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
             />
@@ -131,15 +127,15 @@ const ContextMenu = ({
           <div>
             <label className="block text-sm font-medium mb-1">Book Information</label>
             <div className="px-3 py-2 bg-white/30 dark:bg-gray-800/30 rounded-lg border border-gray-300 dark:border-gray-600 text-sm">
-              {bookInfo.name}: Volume {bookInfo.volume}, Page {bookInfo.page}
+              Book Number: {bookInfo.bookNumber}, Volume: {bookInfo.volume}, Page: {bookInfo.page}
             </div>
           </div>
 
           {/* Original book Chapter/sub-chapter name (automated) */}
           <div>
-            <label className="block text-sm font-medium mb-1">Chapter Information</label>
+            <label className="block text-sm font-medium mb-1">Chapter</label>
             <div className="px-3 py-2 bg-white/30 dark:bg-gray-800/30 rounded-lg border border-gray-300 dark:border-gray-600 text-sm">
-              {bookInfo.chapter} / {bookInfo.subChapter}
+              {bookInfo.chapter}
             </div>
           </div>
 
@@ -204,6 +200,7 @@ export default function NewFatwaPage() {
   const { id } = useParams()
   const [content, setContent] = useState("")
   const [loading, setLoading] = useState(true)
+  const [documents, setDocuments] = useState<any[]>([])
   const [error, setError] = useState<string | null>(null)
   const [selections, setSelections] = useState<TextSelection[]>([])
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 })
@@ -235,6 +232,18 @@ export default function NewFatwaPage() {
 
         if (!response.ok) {
           throw new Error(`Failed to fetch document: ${response.status} ${response.statusText}`)
+        }
+        if (response) {
+          await fetch(`https://lkp.pathok.com.bd/api/scraped-documents/${id}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              console.log("Fetched document data:", data)
+              setDocuments(data)
+            })
         }
 
         // Convert document to HTML
@@ -352,21 +361,61 @@ export default function NewFatwaPage() {
   }
 
   // Handle create issue
-  const handleCreateIssue = (formData: any) => {
-    // Combine all selected text into a single string
-    const combinedText = selections.map((s) => s.text).join(" ")
+  const handleCreateIssue = async (formData: any) => {
+    try {
+      // Combine all selected text into a single string
+      const combinedText = selections.map((s) => s.text).join(" ")
 
-    // Log the form data with combined text
-    console.log({
-      ...formData,
-      selectedText: combinedText,
-    })
+      // Get token from session storage
+      const user = sessionStorage.getItem("user")
+      const token = user ? JSON.parse(user).token : null
 
-    // Close the menu
-    setShowMenu(false)
+      if (!token) {
+        setError("Authentication token not found. Please log in again.")
+        return
+      }
 
-    // Clear all selections after creating issue
-    clearSelections()
+      // Prepare data according to the backend interface
+      const issueData = {
+        title: formData.title,
+        status: "pending", // Default status
+        bookNumber: formData.bookInfo.bookNumber,
+        pageNumber: formData.bookInfo.page,
+        volume: formData.bookInfo.volume,
+        chapter: formData.bookInfo.chapter,
+        tags: formData.tags,
+        issue: combinedText,
+      }
+
+      // Make POST request to the API
+      const response = await fetch("https://lkp.pathok.com.bd/api/issue", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(issueData),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to create issue: ${response.status} ${response.statusText}`)
+      }
+
+      toast.success("Issue created successfully!")
+
+      const result = await response.json()
+      console.log("Issue created successfully:", result)
+
+
+      // Close the menu
+      setShowMenu(false)
+
+      // Clear all selections after creating issue
+      clearSelections()
+    } catch (error) {
+      console.error("Error creating issue:", error)
+      alert(`Error creating issue: ${error instanceof Error ? error.message : "Unknown error"}`)
+    }
   }
 
   // Clear all selections
@@ -536,6 +585,7 @@ export default function NewFatwaPage() {
           position={menuPosition}
           onClose={() => setShowMenu(false)}
           onCreateIssue={handleCreateIssue}
+          documentData={documents}
           selection={selections.map((s) => s.text).join(" ")}
         />
       )}
@@ -558,4 +608,3 @@ export default function NewFatwaPage() {
     </div>
   )
 }
-
