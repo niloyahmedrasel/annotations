@@ -150,6 +150,62 @@ export default function FatwasPage() {
     }
   }
 
+  const createLabelStudioProject = async () => {
+    const response = await fetch('http://localhost:8080/api/projects', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Token 6ddfed0c341bbc738d5e1f9cd207e1aafe6dfdcb',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        title: 'Issue Annotation Project',
+        description: 'Project created from app',
+        label_config: `
+          <View>
+            <Text name="text" value="$text"/>
+            <Choices name="label" toName="text" choice="single">
+              <Choice value="Important"/>
+              <Choice value="Not Important"/>
+            </Choices>
+          </View>
+        `,
+      }),
+    });
+  
+    const data = await response.json();
+    return data.id; 
+  };
+
+  const handleAnnotateIssue = async (issueId: string) =>{
+    const projectId = await createLabelStudioProject();
+
+    const user = sessionStorage.getItem("user")
+    const token = user ? JSON.parse(user).token : null
+    const issueData = await fetch(`https://lkp.pathok.com.bd/api/issue/${issueId}`,{
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const issue = await issueData.json();
+
+    console.log(issue)
+
+    const response = await fetch(`http://localhost:8080/api/projects/${projectId}/import`, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Token 6ddfed0c341bbc738d5e1f9cd207e1aafe6dfdcb',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify([
+        {
+        text: issue.issue.issue,
+        issueId: issue.issue._id,
+        },
+      ]),
+    });
+  
+    await response.json();
+    window.open(`http://localhost:8080/projects/${projectId}`, '_blank');
+  }
+
   // Handle tag selection
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) =>
@@ -362,8 +418,9 @@ export default function FatwasPage() {
               <TableHead>Book Number</TableHead>
               <TableHead>Page</TableHead>
               <TableHead>Volume</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead>chapter</TableHead>
               <TableHead>Date</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -375,16 +432,16 @@ export default function FatwasPage() {
                   <TableCell>{issue.bookNumber}</TableCell>
                   <TableCell>{issue.pageNumber}</TableCell>
                   <TableCell>{issue.volume}</TableCell>
+                  <TableCell>{issue.chapter}</TableCell>
+                  <TableCell>{formatDate(issue.createdAt)}</TableCell>
                   <TableCell>
                     <Badge className={getStatusColor(issue.status) + " text-white"}>{issue.status}</Badge>
                   </TableCell>
-                  <TableCell>{formatDate(issue.createdAt)}</TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="sm" onClick={() => handleViewIssue(issue)} className="mr-1">
-                      <Eye className="h-4 w-4 mr-1" />
                       View
                     </Button>
-                    <Button variant="ghost" size="sm" className="mr-1">
+                    <Button onClick={() => handleAnnotateIssue(issue._id)} variant="ghost" size="sm" className="mr-1">
                       Annotate
                     </Button>
                     <Button

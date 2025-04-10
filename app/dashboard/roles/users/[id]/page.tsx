@@ -10,20 +10,23 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "react-toastify"
 
-const userFormSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  email: z.string().email({ message: "Please enter a valid email address." }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters." }),
-  confirmPassword: z.string().min(6, { message: "Confirm Password must be at least 6 characters." }),
-  role: z.string({ required_error: "Please select a role." }),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords must match",
-  path: ["confirmPassword"],
-})
+const userFormSchema = z
+  .object({
+    name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+    email: z.string().email({ message: "Please enter a valid email address." }),
+    password: z.string().min(6, { message: "Password must be at least 6 characters." }),
+    confirmPassword: z.string().min(6, { message: "Confirm Password must be at least 6 characters." }),
+    role: z.string({ required_error: "Please select a role." }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords must match",
+    path: ["confirmPassword"],
+  })
 
 export default function UserForm({ params }: { params: { id: string } }) {
   const isNewUser = params.id === "new"
   const [loading, setLoading] = useState(false)
+  const [formKey, setFormKey] = useState(Date.now()) 
 
   const form = useForm<z.infer<typeof userFormSchema>>({
     resolver: zodResolver(userFormSchema),
@@ -36,9 +39,12 @@ export default function UserForm({ params }: { params: { id: string } }) {
     },
   })
 
+  
   useEffect(() => {
+    setFormKey(Date.now())
+
     if (isNewUser) {
-      // Reset form with empty values when creating a new user
+      // Explicitly reset all fields to empty for new user
       form.reset({
         name: "",
         email: "",
@@ -47,9 +53,9 @@ export default function UserForm({ params }: { params: { id: string } }) {
         role: "",
       })
     } else {
-      // Fetch user data when editing
+      // Fetch and populate data for existing user
       setLoading(true)
-      fetch(`https://lkp.pathok.com.bd/api/user/${params.id}`,{
+      fetch(`https://lkp.pathok.com.bd/api/user/${params.id}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -76,9 +82,7 @@ export default function UserForm({ params }: { params: { id: string } }) {
     const user = JSON.parse(sessionStorage.getItem("user") || "{}")
     const token = user.token
 
-    const url = isNewUser
-      ? "https://lkp.pathok.com.bd/api/user"
-      : `https://lkp.pathok.com.bd/api/user/${params.id}`
+    const url = isNewUser ? "https://lkp.pathok.com.bd/api/user" : `https://lkp.pathok.com.bd/api/user/${params.id}`
 
     const method = isNewUser ? "POST" : "PUT"
 
@@ -101,9 +105,11 @@ export default function UserForm({ params }: { params: { id: string } }) {
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold">{isNewUser ? "Add New User" : "Edit User"}</h1>
-      {loading ? <p>Loading user data...</p> : (
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      {loading ? (
+        <p>Loading user data...</p>
+      ) : (
+        <Form {...form} key={formKey}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8" autoComplete="off">
             <FormField
               control={form.control}
               name="name"
@@ -111,7 +117,7 @@ export default function UserForm({ params }: { params: { id: string } }) {
                 <FormItem>
                   <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter user's name" {...field} />
+                    <Input placeholder="Enter user's name" {...field} autoComplete="off" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -124,7 +130,7 @@ export default function UserForm({ params }: { params: { id: string } }) {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter user's email" {...field} />
+                    <Input placeholder="Enter user's email" {...field} autoComplete="off" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -137,7 +143,7 @@ export default function UserForm({ params }: { params: { id: string } }) {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="Enter password" {...field} />
+                    <Input type="password" placeholder="Enter password" {...field} autoComplete="new-password" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -150,7 +156,7 @@ export default function UserForm({ params }: { params: { id: string } }) {
                 <FormItem>
                   <FormLabel>Confirm Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="Confirm password" {...field} />
+                    <Input type="password" placeholder="Confirm password" {...field} autoComplete="new-password" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -162,7 +168,7 @@ export default function UserForm({ params }: { params: { id: string } }) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Role</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a role" />

@@ -7,8 +7,15 @@ import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ChevronUp, ChevronDown } from "lucide-react"
 import { toast } from "react-toastify"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 interface User {
   _id: string
@@ -28,6 +35,7 @@ export default function UsersPage() {
   const [sortKey, setSortKey] = useState<SortKey>("name")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
   const [frozenUsers, setFrozenUsers] = useState<string[]>([])
+  const [userToDelete, setUserToDelete] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -46,7 +54,7 @@ export default function UsersPage() {
         })
         if (!response.ok) throw new Error("Failed to fetch users")
         const data = await response.json()
-        console.log("this is user",data)
+        console.log("this is user", data)
         setUsers(data.users)
       } catch (err) {
         setError((err as any).message)
@@ -58,7 +66,7 @@ export default function UsersPage() {
     fetchUsers()
   }, [])
 
-  const deleteUser = async(userId:string)=>{
+  const deleteUser = async (userId: string) => {
     const user = sessionStorage.getItem("user")
     const token = user ? JSON.parse(user).token : null
     if (!token) {
@@ -69,13 +77,28 @@ export default function UsersPage() {
 
     try {
       const response = await fetch(`https://lkp.pathok.com.bd/api/user/${userId}`, {
-        method:"DELETE",
+        method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!response.ok) throw new Error("User not deleted")
-      toast.success("User Deleted Succesfully")
+      toast.success("User Deleted Successfully")
+
+      // Refresh the user list after successful deletion
+      setUsers(users.filter((user) => user._id !== userId))
     } catch (err) {
       setError((err as any).message)
+      toast.error("Failed to delete user")
+    }
+  }
+
+  const handleDeleteClick = (userId: string) => {
+    setUserToDelete(userId)
+  }
+
+  const confirmDelete = async () => {
+    if (userToDelete) {
+      await deleteUser(userToDelete)
+      setUserToDelete(null)
     }
   }
 
@@ -105,15 +128,13 @@ export default function UsersPage() {
     }
   }
 
-
   const toggleFreeze = (userId: string) => {
-  setFrozenUsers((prev) => {
-    const newFrozenUsers = prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId];
-    console.log("Frozen Users List:", newFrozenUsers);
-    return newFrozenUsers;
-  });
-};
-
+    setFrozenUsers((prev) => {
+      const newFrozenUsers = prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
+      console.log("Frozen Users List:", newFrozenUsers)
+      return newFrozenUsers
+    })
+  }
 
   if (loading) return <p>Loading users...</p>
   if (error) return <p className="text-red-500">Error: {error}</p>
@@ -148,9 +169,15 @@ export default function UsersPage() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="cursor-pointer" onClick={() => handleSort("name")}>Name</TableHead>
-            <TableHead className="cursor-pointer" onClick={() => handleSort("email")}>Email</TableHead>
-            <TableHead className="cursor-pointer" onClick={() => handleSort("role")}>Role</TableHead>
+            <TableHead className="cursor-pointer" onClick={() => handleSort("name")}>
+              Name
+            </TableHead>
+            <TableHead className="cursor-pointer" onClick={() => handleSort("email")}>
+              Email
+            </TableHead>
+            <TableHead className="cursor-pointer" onClick={() => handleSort("role")}>
+              Role
+            </TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -159,12 +186,16 @@ export default function UsersPage() {
             <TableRow key={user._id} className={frozenUsers.includes(user._id) ? "opacity-50" : ""}>
               <TableCell className="font-medium">{user.name}</TableCell>
               <TableCell>{user.email}</TableCell>
-              <TableCell><Badge variant="secondary">{user.role}</Badge></TableCell>
+              <TableCell>
+                <Badge variant="default">{user.role}</Badge>
+              </TableCell>
               <TableCell className="text-right">
                 <Button variant="ghost" size="sm" asChild>
                   <Link href={`/dashboard/roles/users/${user._id}`}>Edit</Link>
                 </Button>
-                <Button onClick={()=>deleteUser(user._id)} variant="ghost" size="sm">Delete</Button>
+                <Button onClick={() => handleDeleteClick(user._id)} variant="ghost" size="sm">
+                  Delete
+                </Button>
                 <Button variant="ghost" size="sm" onClick={() => toggleFreeze(user._id)}>
                   {frozenUsers.includes(user._id) ? "Unfreeze" : "Freeze"}
                 </Button>
@@ -173,6 +204,26 @@ export default function UsersPage() {
           ))}
         </TableBody>
       </Table>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={userToDelete !== null} onOpenChange={(open) => !open && setUserToDelete(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this user? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setUserToDelete(null)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
