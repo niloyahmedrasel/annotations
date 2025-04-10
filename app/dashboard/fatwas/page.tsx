@@ -154,7 +154,7 @@ export default function FatwasPage() {
     const response = await fetch('https://studio.pathok.com.bd/api/projects', {
       method: 'POST',
       headers: {
-        'Authorization': 'Token 6ddfed0c341bbc738d5e1f9cd207e1aafe6dfdcb',
+        'Authorization': 'Token 31e16e9198a48b1135e4552ee5843c574d202c1b',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -191,7 +191,7 @@ export default function FatwasPage() {
     const response = await fetch(`https://studio.pathok.com.bd/api/projects/${projectId}/import`, {
       method: 'POST',
       headers: {
-        'Authorization': 'Token 6ddfed0c341bbc738d5e1f9cd207e1aafe6dfdcb',
+        'Authorization': 'Token 31e16e9198a48b1135e4552ee5843c574d202c1b',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify([
