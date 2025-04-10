@@ -202,9 +202,8 @@ export default function FatwasPage() {
       ]),
     });
   
-    const result = await response.json();
-    console.log(result);
-    
+    await response.json();
+    window.open(`https://studio.pathok.com.bd/projects/${projectId}`, '_blank');
   }
 
   // Handle tag selection
