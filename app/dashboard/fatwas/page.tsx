@@ -151,7 +151,7 @@ export default function FatwasPage() {
   }
 
   const createLabelStudioProject = async () => {
-    const response = await fetch('http://localhost:8080/api/projects', {
+    const response = await fetch('https://studio.pathok.com.bd/api/projects', {
       method: 'POST',
       headers: {
         'Authorization': 'Token 6ddfed0c341bbc738d5e1f9cd207e1aafe6dfdcb',
