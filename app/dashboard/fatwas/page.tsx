@@ -188,7 +188,7 @@ export default function FatwasPage() {
 
     console.log(issue)
 
-    const response = await fetch(`http://localhost:8080/api/projects/${projectId}/import`, {
+    const response = await fetch(`https://studio.pathok.com.bd/api/projects/${projectId}/import`, {
       method: 'POST',
       headers: {
         'Authorization': 'Token 6ddfed0c341bbc738d5e1f9cd207e1aafe6dfdcb',
@@ -203,7 +203,7 @@ export default function FatwasPage() {
     });
   
     await response.json();
-    window.open(`http://localhost:8080/projects/${projectId}`, '_blank');
+    window.open(`https://studio.pathok.com.bd/projects/${projectId}`, '_blank');
   }
 
   // Handle tag selection
