@@ -152,12 +152,6 @@ export default function FatwasPage() {
 
   const createLabelStudioProject = async () => {
 
-    let projectId:any = sessionStorage.getItem('labelStudioProjectId');
-
-    if (projectId) {
-      console.log('Reusing existing project with ID:', projectId);
-      return projectId;
-    }
     const response = await fetch('https://studio.pathok.com.bd/api/projects', {
       method: 'POST',
       headers: {
@@ -180,11 +174,7 @@ export default function FatwasPage() {
     });
   
     const data = await response.json();
-    projectId = data.id;
-
-    sessionStorage.setItem('labelStudioProjectId', projectId);
-  
-    return projectId; 
+    return data.id; 
   };
 
   const handleAnnotateIssue = async (issueId: string) =>{
