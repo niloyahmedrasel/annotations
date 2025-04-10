@@ -151,6 +151,13 @@ export default function FatwasPage() {
   }
 
   const createLabelStudioProject = async () => {
+
+    let projectId:any = sessionStorage.getItem('labelStudioProjectId');
+
+    if (projectId) {
+      console.log('Reusing existing project with ID:', projectId);
+      return projectId;
+    }
     const response = await fetch('https://studio.pathok.com.bd/api/projects', {
       method: 'POST',
       headers: {
@@ -173,7 +180,11 @@ export default function FatwasPage() {
     });
   
     const data = await response.json();
-    return data.id; 
+    projectId = data.id;
+
+    sessionStorage.setItem('labelStudioProjectId', projectId);
+  
+    return projectId; 
   };
 
   const handleAnnotateIssue = async (issueId: string) =>{
@@ -206,14 +217,13 @@ export default function FatwasPage() {
     window.open(`https://studio.pathok.com.bd/projects/${projectId}`, '_blank');
   }
 
-  // Handle tag selection
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) =>
       prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
     )
   }
 
-  // Clear all selected tags
+ 
   const clearTagFilters = () => {
     setSelectedTags([])
   }
