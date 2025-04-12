@@ -153,23 +153,12 @@ export default function FatwasPage() {
   const handleAnnotateIssue = async (issueId: string) => {
     const user = sessionStorage.getItem("user");
     const token = user ? JSON.parse(user).token : null;
-
-    const csrfRes = await fetch('https://lkp.pathok.com.bd/api/issue/get-csrf-token', {
-        credentials: 'include',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        }
-    });
-    const csrfToken = await csrfRes.headers.get('X-CSRFToken');
-
+  
     const res = await fetch(`https://lkp.pathok.com.bd/api/issue/annotate-issue`, {
         method: "POST",
-        credentials: "include",
-        headers: {
+        headers: {  
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
-            "X-CSRFToken": csrfToken || '' 
         },
         body: JSON.stringify({ issueId }),
     });
