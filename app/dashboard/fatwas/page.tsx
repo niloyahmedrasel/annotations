@@ -151,21 +151,42 @@ export default function FatwasPage() {
   }
 
   const handleAnnotateIssue = async (issueId: string) => {
-    const user = sessionStorage.getItem("user");
-    const token = user ? JSON.parse(user).token : null;
+    try {
+      const user = sessionStorage.getItem("user");
+      const token = user ? JSON.parse(user).token : null;
   
-    const res = await fetch(`https://lkp.pathok.com.bd/api/issue/annotate-issue`, {
+      if (!token) {
+        alert("You must be logged in to annotate.");
+        return;
+      }
+  
+      const res = await fetch(`http://localhost:5000/api/issue/annotate-issue`, {
         method: "POST",
         headers: {  
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ issueId }),
-    });
+      });
   
-    const { projectId } = await res.json();
-    window.open(`https://studio.pathok.com.bd/projects/${projectId}`, "_blank");
-};
+      const responseData = await res.json();
+  
+      if (!res.ok) {
+        console.error(responseData);
+        alert(responseData.error || "Failed to annotate issue");
+        return;
+      }
+      const projectId = responseData.projectId;
+      console.log("Redirecting to project:", projectId);
+  
+      window.open(`https://studio.pathok.com.bd/projects/${projectId}/data`, "_blank");
+  
+    } catch (err) {
+      console.error(err);
+      alert("An error occurred while annotating.");
+    }
+  };
+  
   
 
   const toggleTag = (tag: string) => {
