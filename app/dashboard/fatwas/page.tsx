@@ -160,7 +160,7 @@ export default function FatwasPage() {
         return;
       }
   
-      const res = await fetch(`http://localhost:5000/api/issue/annotate-issue`, {
+      const res = await fetch(`https://lkp.pathok.com.bd/api/issue/annotate-issue`, {
         method: "POST",
         headers: {  
           Authorization: `Bearer ${token}`,
