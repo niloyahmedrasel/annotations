@@ -155,7 +155,11 @@ export default function FatwasPage() {
     const token = user ? JSON.parse(user).token : null;
 
     const csrfRes = await fetch('https://lkp.pathok.com.bd/api/issue/get-csrf-token', {
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        }
     });
     const csrfToken = await csrfRes.headers.get('X-CSRFToken');
 
