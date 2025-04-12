@@ -150,62 +150,24 @@ export default function FatwasPage() {
     }
   }
 
-  const createLabelStudioProject = async () => {
-
-    const response = await fetch('https://studio.pathok.com.bd/api/projects', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Token 31e16e9198a48b1135e4552ee5843c574d202c1b',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        title: 'Issue Annotation Project',
-        description: 'Project created from app',
-        label_config: `
-          <View>
-            <Text name="text" value="$text"/>
-            <Choices name="label" toName="text" choice="single">
-              <Choice value="Important"/>
-              <Choice value="Not Important"/>
-            </Choices>
-          </View>
-        `,
-      }),
-    });
+  const handleAnnotateIssue = async (issueId: string) => {
+    const user = sessionStorage.getItem("user");
+    const token = user ? JSON.parse(user).token : null;
   
-    const data = await response.json();
-    return data.id; 
-  };
-
-  const handleAnnotateIssue = async (issueId: string) =>{
-    const projectId = await createLabelStudioProject();
-
-    const user = sessionStorage.getItem("user")
-    const token = user ? JSON.parse(user).token : null
-    const issueData = await fetch(`https://lkp.pathok.com.bd/api/issue/${issueId}`,{
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const issue = await issueData.json();
-
-    console.log(issue)
-
-    const response = await fetch(`https://studio.pathok.com.bd/api/projects/${projectId}/import`, {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Token 31e16e9198a48b1135e4552ee5843c574d202c1b',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify([
-        {
-        text: issue.issue.issue,
-        issueId: issue.issue._id,
+    const res = await fetch(`https://lkp.pathok.com.bd/api/issue/annotate-issue`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
         },
-      ]),
+        body: JSON.stringify({ issueId }),
     });
   
-    await response.json();
-    window.open(`https://studio.pathok.com.bd/projects/${projectId}`, '_blank');
-  }
+    const { projectId } = await res.json();
+    window.open(`https://studio.pathok.com.bd/projects/${projectId}`, "_blank");
+};
+  
 
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) =>
