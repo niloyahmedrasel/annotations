@@ -93,10 +93,7 @@ const navItems: NavItem[] = [
     icon: Tag,
     roles: ["Super Admin", "Annotator"],
     submenu: [
-      { title: "All Annotations", href: "/dashboard/annotations" },
-      { title: "Create New", href: "/dashboard/annotations/new" },
-      { title: "Rules", href: "/dashboard/annotations/rules" },
-      { title: "Tags", href: "/dashboard/annotations/tags" },
+      { title: "All Annotations", href: "/dashboard/annotations" }
     ],
   },
   {
