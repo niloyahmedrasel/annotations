@@ -160,7 +160,7 @@ export default function FatwasPage() {
         return;
       }
   
-      const res = await fetch(`http://localhost:5000/api/issue/annotate-issue`, {
+      const res = await fetch(`https://lkp.pathok.com.bd/api/issue/annotate-issue`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -185,7 +185,7 @@ export default function FatwasPage() {
       }
   
       console.log("Redirecting to project:", projectId);
-      window.open(`http://localhost:8080/projects/${projectId}/data`, "_blank");
+      window.open(`https://studio.pathok.com.bd/projects/${projectId}/data`, "_blank");
   
     } catch (err) {
       console.error(err);
