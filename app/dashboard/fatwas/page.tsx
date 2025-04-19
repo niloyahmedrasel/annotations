@@ -160,32 +160,39 @@ export default function FatwasPage() {
         return;
       }
   
-      const res = await fetch(`https://lkp.pathok.com.bd/api/issue/annotate-issue`, {
+      const res = await fetch(`http://localhost:5000/api/issue/annotate-issue`, {
         method: "POST",
-        headers: {  
+        headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ issueId }),
       });
   
-      const responseData = await res.json();
-  
       if (!res.ok) {
+        const responseData = await res.json();
         console.error(responseData);
         alert(responseData.error || "Failed to annotate issue");
         return;
       }
-      const projectId = responseData.projectId;
-      console.log("Redirecting to project:", projectId);
   
-      window.open(`https://studio.pathok.com.bd/projects/${projectId}/data`, "_blank");
+      const responseData = await res.json();
+      const projectId = responseData.projectId;
+  
+      if (!projectId) {
+        alert("Invalid project ID.");
+        return;
+      }
+  
+      console.log("Redirecting to project:", projectId);
+      window.open(`http://localhost:8080/projects/${projectId}/data`, "_blank");
   
     } catch (err) {
       console.error(err);
       alert("An error occurred while annotating.");
     }
   };
+  
   
   
 

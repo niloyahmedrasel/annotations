@@ -25,7 +25,14 @@ interface PermissionState {
   }
 }
 
-const roles = ["Super Admin", "Doc Organizer", "Annotator", "Reviewer"]
+const roleMappings: { [key: string]: string } = {
+  superAdmin: "Super Admin",
+  docOrganizer: "Doc Organizer",
+  annotator: "Annotator",
+  reviewer: "Reviewer"
+}
+
+const roles = Object.values(roleMappings)
 
 const RolePermissions = () => {
   const [permissions, setPermissions] = useState<Category[]>([])
@@ -33,30 +40,32 @@ const RolePermissions = () => {
   const [newPermission, setNewPermission] = useState({ category: "", action: "" })
   const [expandedCategories, setExpandedCategories] = useState<string[]>([])
   const [groupName, setGroupName] = useState("")
+  const [isLoading, setIsLoading] = useState(true)
 
-  const handlePermissionChange = async (actionId: string, role: string) => {
+  const handlePermissionChange = async (actionId: string, roleDisplayName: string) => {
     try {
-      const user = sessionStorage.getItem("user"); 
-      const userId = user ? JSON.parse(user).id : null;
-      const token = user ? JSON.parse(user).token : null;
+      const user = sessionStorage.getItem("user")
+      const userId = user ? JSON.parse(user).id : null
+      const token = user ? JSON.parse(user).token : null
       if (!token) {
-        console.error("No token found!");
-        return;
+        console.error("No token found!")
+        return
       }
   
-      const isChecked = !permissionState[actionId]?.[role];
+      const isChecked = !permissionState[actionId]?.[roleDisplayName]
   
-      setPermissionState((prevState) => ({
-        ...prevState,
+      // Optimistic UI update
+      setPermissionState(prev => ({
+        ...prev,
         [actionId]: {
-          ...prevState[actionId],
-          [role]: isChecked,
-        },
-      }));
+          ...prev[actionId],
+          [roleDisplayName]: isChecked
+        }
+      }))
   
       const endpoint = isChecked
-        ? `https://lkp.pathok.com.bd/api/user/grant-permission/${userId}` 
-        : `https://lkp.pathok.com.bd/api/user/remove-permission/${userId}`; 
+        ? `https://lkp.pathok.com.bd/api/user/grant-permission/${userId}`
+        : `https://lkp.pathok.com.bd/api/user/remove-permission/${userId}`
   
       const response = await fetch(endpoint, {
         method: "POST",
@@ -65,26 +74,26 @@ const RolePermissions = () => {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          role: role,
+          role: roleDisplayName, // Send the display name directly
           permissionId: actionId,
         }),
-      });
+      })
   
-      if (!response.ok) {
-        throw new Error(`Failed to ${isChecked ? "grant" : "revoke"} permission`);
-      }
-  
-      console.log(`Permission ${isChecked ? "granted" : "revoked"} successfully`);
+      if (!response.ok) throw new Error(`Failed to ${isChecked ? "grant" : "revoke"} permission`)
+      
+      console.log(`Permission ${isChecked ? "granted" : "revoked"} successfully`)
     } catch (error) {
-      setPermissionState((prevState) => ({
-        ...prevState,
+      // Rollback on error
+      setPermissionState(prev => ({
+        ...prev,
         [actionId]: {
-          ...prevState[actionId],
-          [role]: !prevState[actionId]?.[role],
-        },
-      }));
+          ...prev[actionId],
+          [roleDisplayName]: !prev[actionId]?.[roleDisplayName]
+        }
+      }))
+      toast.error(`Failed to update permission: ${error instanceof Error ? error.message : "Unknown error"}`)
     }
-  };
+  }
 
   const addNewGroup = async () => {
     if (!groupName.trim()) {
@@ -105,24 +114,22 @@ const RolePermissions = () => {
         body: JSON.stringify({ category: groupName }),
       })
 
-      if (!response.ok) {
-        throw new Error("Failed to create group")
-      }
+      if (!response.ok) throw new Error("Failed to create group")
 
       toast.success("Group created successfully!")
-      setGroupName("") 
-    } catch (error:any) {
+      setGroupName("")
+    } catch (error: any) {
       toast.error(error.message || "Something went wrong")
     }
   }
 
-
   useEffect(() => {
     const fetchPermissions = async () => {
-      const user = sessionStorage.getItem("user") 
+      const user = sessionStorage.getItem("user")
       const token = user ? JSON.parse(user).token : null
       if (!token) {
-        console.error("No token found!")
+        console.log("No user token found")
+        setIsLoading(false)
         return
       }
 
@@ -135,9 +142,7 @@ const RolePermissions = () => {
           },
         })
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch permissions")
-        }
+        if (!response.ok) throw new Error("Failed to fetch permissions")
 
         const data = await response.json()
         const transformedData = data.permissions.map((permission: any) => ({
@@ -148,33 +153,91 @@ const RolePermissions = () => {
           })),
         }))
         setPermissions(transformedData)
+        return transformedData
       } catch (error) {
         console.error("Error fetching permissions:", error)
+        toast.error("Failed to load permissions")
+        return []
       }
     }
 
-    fetchPermissions()
+    const fetchUserPermissions = async () => {
+      const user = sessionStorage.getItem("user")
+      const token = user ? JSON.parse(user).token : null
+
+      if (!token) {
+        console.log("No user token found")
+        setIsLoading(false)
+        return
+      }
+
+      try {
+        const response = await fetch(`http://localhost:5000/api/permission/get-permissions`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (!response.ok) throw new Error("Failed to fetch user permissions")
+
+        const data = await response.json()
+        const newPermissionState: PermissionState = {}
+
+        // Process each role from API response
+        Object.entries(data.permissions).forEach(([apiRole, permissionIds]) => {
+          const displayRole = roleMappings[apiRole]
+          if (!displayRole) return
+
+          (permissionIds as string[]).forEach(permissionId => {
+            if (!newPermissionState[permissionId]) {
+              newPermissionState[permissionId] = {}
+            }
+            newPermissionState[permissionId][displayRole] = true
+          })
+        })
+
+        setPermissionState(newPermissionState)
+      } catch (error) {
+        console.error("Error fetching user permissions:", error)
+        toast.error("Failed to load user permissions")
+      }
+    }
+
+    const fetchData = async () => {
+      setIsLoading(true)
+      try {
+        await fetchPermissions()
+        await fetchUserPermissions()
+      } catch (error) {
+        console.error("Error fetching data:", error)
+      }
+      setIsLoading(false)
+    }
+
+    fetchData()
   }, [])
 
   const addNewPermission = async () => {
     if (!newPermission.category || !newPermission.action) {
-      console.error("Category and action are required");
-      return;
+      toast.error("Category and action are required")
+      return
     }
-    
-    const user = sessionStorage.getItem("user");
-    const token = user ? JSON.parse(user).token : null;
-    
+
+    const user = sessionStorage.getItem("user")
+    const token = user ? JSON.parse(user).token : null
+
     if (!token) {
-      console.error("No token found!");
-      return;
+      toast.error("You must be logged in to add permissions")
+      return
     }
-  
+
     const requestData = {
       categoryName: newPermission.category,
       action: [{ name: newPermission.action }],
-    };
-  
+    }
+
     try {
       const response = await fetch("https://lkp.pathok.com.bd/api/permission/add-action", {
         method: "POST",
@@ -183,57 +246,61 @@ const RolePermissions = () => {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(requestData),
-      });
-  
-      if (!response.ok) {
-        throw new Error("Failed to add permission");
-      }
-  
-      const data = await response.json();
-      console.log("Permission added:", data);
-  
-      setPermissions((prevPermissions) => {
-        const categoryIndex = prevPermissions.findIndex((cat) => cat.name === data.categoryName);
+      })
+
+      if (!response.ok) throw new Error("Failed to add permission")
+
+      const data = await response.json()
+      setPermissions(prev => {
+        const categoryIndex = prev.findIndex(cat => cat.name === data.categoryName)
         if (categoryIndex !== -1) {
-          const updatedPermissions = [...prevPermissions];
-          updatedPermissions[categoryIndex].actions.push(...(data.action ?? []));
-          return updatedPermissions;
+          const updated = [...prev]
+          updated[categoryIndex].actions.push(...(data.action ?? []))
+          return updated
         }
-        return [...prevPermissions, { name: data.categoryName, actions: data.action ?? [] }];
-      });      
-  
-      setNewPermission({ category: "", action: "" });
+        return [...prev, { name: data.categoryName, actions: data.action ?? [] }]
+      })
+
+      setNewPermission({ category: "", action: "" })
+      toast.success("Permission added successfully")
     } catch (error) {
-      console.error("Error adding permission:", error);
+      console.error("Error adding permission:", error)
+      toast.error("Failed to add permission")
     }
-  };
-  
-  
+  }
 
   const toggleCategory = (categoryName: string) => {
-    setExpandedCategories((prev) =>
-      prev.includes(categoryName) ? prev.filter((name) => name !== categoryName) : [...prev, categoryName],
+    setExpandedCategories(prev =>
+      prev.includes(categoryName) ? prev.filter(name => name !== categoryName) : [...prev, categoryName]
+    )
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
+      </div>
     )
   }
 
   return (
     <div className="container mx-auto py-10">
       <div className="flex">
-      <Input
-        placeholder="Create New Group"
-        className="w-1/3 mb-5 mr-2"
-        value={groupName}
-        onChange={(e) => setGroupName(e.target.value)}
-      />
-      <Button onClick={addNewGroup} className="whitespace-nowrap">
-        <Plus className="mr-2" /> Add New Group
-      </Button>
-    </div>
-      
+        <Input
+          placeholder="Create New Group"
+          className="w-1/3 mb-5 mr-2"
+          value={groupName}
+          onChange={(e) => setGroupName(e.target.value)}
+        />
+        <Button onClick={addNewGroup} className="whitespace-nowrap">
+          <Plus className="mr-2" /> Add New Group
+        </Button>
+      </div>
+
       <div className="mb-6 flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
         <Select
           value={newPermission.category}
-          onValueChange={(value) => setNewPermission({ ...newPermission, category: value })}
+          onValueChange={(value) => setNewPermission(p => ({ ...p, category: value }))}
         >
           <SelectTrigger className="w-[200px]">
             {newPermission.category ? (
@@ -253,7 +320,7 @@ const RolePermissions = () => {
         <Input
           placeholder="Action"
           value={newPermission.action}
-          onChange={(e) => setNewPermission({ ...newPermission, action: e.target.value })}
+          onChange={(e) => setNewPermission(p => ({ ...p, action: e.target.value }))}
           className="flex-1"
         />
         <Button onClick={addNewPermission} className="whitespace-nowrap">
@@ -272,38 +339,46 @@ const RolePermissions = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {permissions.map((category) => (
-              <React.Fragment key={category.name}>
-                <TableRow
-                  className="cursor-pointer hover:bg-gray-700 transition-colors duration-200"
-                  onClick={() => toggleCategory(category.name)}
-                >
-                  <TableCell colSpan={2 + roles.length} className="font-bold">
-                    {expandedCategories.includes(category.name) ? (
-                      <ChevronDown className="inline mr-2" />
-                    ) : (
-                      <ChevronRight className="inline mr-2" />
-                    )}
-                    {category.name}
-                  </TableCell>
-                </TableRow>
-                {expandedCategories.includes(category.name) &&
-                    (category.actions ?? []).map((action) => (
-                    <TableRow key={action.id}>
-                      <TableCell></TableCell>
-                      <TableCell>{action.name}</TableCell>
-                      {roles.map((role) => (
-                        <TableCell key={`${action.id}-${role}`}>
-                          <Checkbox
-                            checked={permissionState[action.id]?.[role] || false}
-                            onCheckedChange={() => handlePermissionChange(action.id, role)}
-                          />
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))}
-              </React.Fragment>
-            ))}
+            {permissions.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={2 + roles.length} className="text-center py-8">
+                  No permissions found. Add a new permission to get started.
+                </TableCell>
+              </TableRow>
+            ) : (
+              permissions.map((category) => (
+                <React.Fragment key={category.name}>
+                  <TableRow
+                    className="cursor-pointer hover:bg-gray-500"
+                    onClick={() => toggleCategory(category.name)}
+                  >
+                    <TableCell colSpan={2 + roles.length} className="font-bold">
+                      {expandedCategories.includes(category.name) ? (
+                        <ChevronDown className="inline mr-2" />
+                      ) : (
+                        <ChevronRight className="inline mr-2" />
+                      )}
+                      {category.name}
+                    </TableCell>
+                  </TableRow>
+                  {expandedCategories.includes(category.name) &&
+                    category.actions.map((action) => (
+                      <TableRow key={action.id}>
+                        <TableCell></TableCell>
+                        <TableCell>{action.name}</TableCell>
+                        {roles.map((role) => (
+                          <TableCell key={`${action.id}-${role}`}>
+                            <Checkbox
+                              checked={!!permissionState[action.id]?.[role]}
+                              onCheckedChange={() => handlePermissionChange(action.id, role)}
+                            />
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))}
+                </React.Fragment>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

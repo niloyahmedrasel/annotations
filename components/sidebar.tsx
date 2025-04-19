@@ -243,9 +243,7 @@ export function Sidebar({ onCollapse }: SidebarProps) {
     onCollapse(isCollapsed)
   }, [isCollapsed, onCollapse])
 
-  // Modify the nested submenu click handler to prevent collapsing
   const handleNestedItemClick = (e: React.MouseEvent, href: string) => {
-    // Don't stop propagation, just navigate
     router.push(href)
   }
 
