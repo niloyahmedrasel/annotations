@@ -28,7 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
 
   useEffect(() => {
-    const storedUser = sessionStorage.getItem("user") // Use sessionStorage instead
+    const storedUser = sessionStorage.getItem("user") 
     if (storedUser) {
       setUser(JSON.parse(storedUser))
     }
@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log(user)
 
       setUser(user)
-      sessionStorage.setItem("user", JSON.stringify(user)) // Store in sessionStorage
+      sessionStorage.setItem("user", JSON.stringify(user)) 
 
       return true
     } catch (error) {
@@ -66,13 +66,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     setUser(null)
-    sessionStorage.removeItem("user") // Clear sessionStorage
+    sessionStorage.removeItem("user") 
     router.push("/login")
   }
 
   return (
     <AuthContext.Provider value={{ user, login, logout, isLoading }}>
-      {!isLoading && children} {/* Prevent rendering until data is loaded */}
+      {!isLoading && children} 
     </AuthContext.Provider>
   )
 }
