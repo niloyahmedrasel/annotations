@@ -42,7 +42,6 @@ export default function BookDetailsPage({ params }: { params: { id: string } }) 
   const [isLoading, setIsLoading] = useState(true)
   const [isDeleting, setIsDeleting] = useState(false)
 
-  // Add these state variables after the other useState declarations
   const [modificationChecked, setModificationChecked] = useState(false)
   const [annotationChecked, setAnnotationChecked] = useState(false)
   const [publicReadingChecked, setPublicReadingChecked] = useState(false)
@@ -83,7 +82,6 @@ export default function BookDetailsPage({ params }: { params: { id: string } }) 
     fetchBook()
   }, [params.id, router])
 
-  // Add this useEffect to initialize the checkbox states from the book data
   useEffect(() => {
     if (book) {
       setModificationChecked(book.isAvailableForModification || false)

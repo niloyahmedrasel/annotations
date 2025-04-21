@@ -83,7 +83,6 @@ export default function CreateIssuePage() {
       } else if (dbSortBy === "status") {
         return dbSortOrder === "asc" ? a.status.localeCompare(b.status) : b.status.localeCompare(a.status)
       } else {
-        // Default sort by date
         return dbSortOrder === "asc"
           ? new Date(a.date).getTime() - new Date(b.date).getTime()
           : new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -102,7 +101,6 @@ export default function CreateIssuePage() {
     }
   }
 
-  // Filter and sort Shamela documents
   const filteredShDocuments = shamelaDocuments
     .filter((doc) => {
       const matchesSearch =
@@ -144,7 +142,6 @@ export default function CreateIssuePage() {
     }
   }
 
-  // Render document card
   const renderDocumentCard = (document: any) => (
     console.log("this is document", document),
     <Card key={document.id} className="overflow-hidden transition-all hover:shadow-md">

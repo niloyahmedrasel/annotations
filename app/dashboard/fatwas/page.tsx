@@ -37,7 +37,7 @@ interface Issue {
   updatedAt: string
 }
 
-// Define available statuses based on the API data
+
 const statuses = ["All Statuses", "Annotated", "Not Annotated"]
 
 export default function FatwasPage() {
@@ -48,22 +48,16 @@ export default function FatwasPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showFilters, setShowFilters] = useState(false)
-
-  // State for the issue view dialog
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null)
-
-  // State for delete confirmation dialog
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [issueToDelete, setIssueToDelete] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
-  // Fetch issues from the API
   const fetchIssues = async () => {
     try {
       setLoading(true)
 
-      // Get token from session storage
       const user = sessionStorage.getItem("user")
       const token = user ? JSON.parse(user).token : null
 
@@ -98,21 +92,18 @@ export default function FatwasPage() {
     fetchIssues()
   }, [])
 
-  // Extract all unique tags from issues
   const allTags = Array.from(
     new Set(
       issues.flatMap((issue) => issue.tags || []).filter(Boolean)
     )
   ).sort()
 
-  // Handle delete issue
   const handleDeleteIssue = async () => {
     if (!issueToDelete) return
 
     try {
       setIsDeleting(true)
 
-      // Get token from session storage
       const user = sessionStorage.getItem("user")
       const token = user ? JSON.parse(user).token : null
 
@@ -133,14 +124,11 @@ export default function FatwasPage() {
         throw new Error(`Failed to delete issue: ${response.status} ${response.statusText}`)
       }
 
-      // Remove the deleted issue from the state
       setIssues(issues.filter((issue) => issue._id !== issueToDelete))
 
-      // Close the dialog
       setIsDeleteDialogOpen(false)
       setIssueToDelete(null)
 
-      // Show success message
       toast.success("Issue deleted successfully")
     } catch (error) {
       console.error("Error deleting issue:", error)
@@ -208,15 +196,12 @@ export default function FatwasPage() {
   }
 
   const filteredIssues = issues.filter((issue) => {
-    // Filter by search term (title or issue text)
     const matchesSearch =
       issue.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       issue.issue.toLowerCase().includes(searchTerm.toLowerCase())
 
-    // Filter by status
     const matchesStatus = selectedStatus === "All Statuses" || issue.status === selectedStatus
 
-    // Filter by tags if any are selected
     const matchesTags = 
       selectedTags.length === 0 || 
       (issue.tags && selectedTags.some(tag => issue.tags.includes(tag)))
@@ -235,7 +220,6 @@ export default function FatwasPage() {
     }
   }
 
-  // Format date to a more readable format
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
     return date.toLocaleDateString("en-US", {
@@ -245,13 +229,11 @@ export default function FatwasPage() {
     })
   }
 
-  // Handle view issue
   const handleViewIssue = (issue: Issue) => {
     setSelectedIssue(issue)
     setIsViewDialogOpen(true)
   }
 
-  // Handle delete confirmation
   const handleDeleteConfirmation = (issueId: string) => {
     setIssueToDelete(issueId)
     setIsDeleteDialogOpen(true)
@@ -371,7 +353,6 @@ export default function FatwasPage() {
         )}
       </div>
 
-      {/* Selected tags display */}
       {selectedTags.length > 0 && (
         <div className="flex flex-wrap gap-2 items-center">
           <span className="text-sm font-medium">Filtered by tags:</span>
@@ -456,7 +437,6 @@ export default function FatwasPage() {
         </Table>
       </div>
 
-      {/* Issue View Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -489,7 +469,6 @@ export default function FatwasPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

@@ -59,15 +59,14 @@ export default function BooksPage() {
         const data = await response.json()
         console.log(data)
 
-        // Map API response to match the expected structure
         const formattedBooks = data.books.map((book: any) => ({
-          id: book._id, // Assuming the API uses `_id`
+          id: book._id, 
           bookCover: book.bookCover ? `https://lkp.pathok.com.bd/upload/${book.bookCover}` : "/placeholder.svg",
           title: book.title,
           author: book.author,
-          type: book.type, // Consider fetching type names separately if needed
-          status: "Published", // The API response doesn't have a status field; adjust accordingly
-          categories: [book.category], // Converting category from string to an array
+          type: book.type, 
+          status: "Published", 
+          categories: [book.category], 
         }))
 
         setBooks(formattedBooks)

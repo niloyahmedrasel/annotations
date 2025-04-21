@@ -54,7 +54,6 @@ const RolePermissions = () => {
   
       const isChecked = !permissionState[actionId]?.[roleDisplayName]
   
-      // Optimistic UI update
       setPermissionState(prev => ({
         ...prev,
         [actionId]: {
@@ -74,7 +73,7 @@ const RolePermissions = () => {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          role: roleDisplayName, // Send the display name directly
+          role: roleDisplayName, 
           permissionId: actionId,
         }),
       })
@@ -83,7 +82,6 @@ const RolePermissions = () => {
       
       console.log(`Permission ${isChecked ? "granted" : "revoked"} successfully`)
     } catch (error) {
-      // Rollback on error
       setPermissionState(prev => ({
         ...prev,
         [actionId]: {
@@ -185,7 +183,6 @@ const RolePermissions = () => {
         const data = await response.json()
         const newPermissionState: PermissionState = {}
 
-        // Process each role from API response
         Object.entries(data.permissions).forEach(([apiRole, permissionIds]) => {
           const displayRole = roleMappings[apiRole]
           if (!displayRole) return

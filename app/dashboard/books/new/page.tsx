@@ -51,7 +51,6 @@ export default function BookFormPage() {
     },
   })
 
-  // Fetch book data if in edit mode
   useEffect(() => {
     if (isEditMode) {
       const fetchBookData = async () => {
@@ -77,7 +76,7 @@ export default function BookFormPage() {
           const data = await response.json()
           setBookData(data.book)
 
-          // Set form values
+          
           form.reset({
             title: data.book.title || "",
             author: data.book.author || "",
@@ -126,7 +125,7 @@ export default function BookFormPage() {
       let response
 
       if (isEditMode) {
-        // PUT request for editing
+        
         response = await fetch(`https://lkp.pathok.com.bd/api/book/${bookId}`, {
           method: "PUT",
           headers: {
@@ -135,7 +134,7 @@ export default function BookFormPage() {
           body: formData,
         })
       } else {
-        // POST request for creating
+        
         response = await fetch("https://lkp.pathok.com.bd/api/book", {
           method: "POST",
           headers: {

@@ -82,8 +82,6 @@ export default function UsersPage() {
       })
       if (!response.ok) throw new Error("User not deleted")
       toast.success("User Deleted Successfully")
-
-      // Refresh the user list after successful deletion
       setUsers(users.filter((user) => user._id !== userId))
     } catch (err) {
       setError((err as any).message)

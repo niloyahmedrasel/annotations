@@ -44,7 +44,6 @@ export default function UserForm({ params }: { params: { id: string } }) {
     setFormKey(Date.now())
 
     if (isNewUser) {
-      // Explicitly reset all fields to empty for new user
       form.reset({
         name: "",
         email: "",
@@ -53,7 +52,6 @@ export default function UserForm({ params }: { params: { id: string } }) {
         role: "",
       })
     } else {
-      // Fetch and populate data for existing user
       setLoading(true)
       fetch(`https://lkp.pathok.com.bd/api/user/${params.id}`, {
         method: "GET",

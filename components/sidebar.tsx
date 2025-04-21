@@ -143,7 +143,6 @@ export function Sidebar({ onCollapse }: SidebarProps) {
   const router = useRouter()
   const [isCollapsed, setIsCollapsed] = useState(false)
 
-  // Update the isActive function to be more specific about which items are active
   const isActive = (item: NavItem) => {
     if (item.href === "/dashboard") {
       return pathname === "/dashboard"
@@ -159,7 +158,6 @@ export function Sidebar({ onCollapse }: SidebarProps) {
     return pathname === item.href
   }
 
-  // Update the isSubitemActive function to be more specific
   const isSubitemActive = (href: string) => {
     return pathname === href
   }

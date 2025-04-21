@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button"
 import { nanoid } from "nanoid"
 import { toast } from "react-toastify"
 
-// Types for our selections
 interface TextSelection {
   id: string
   text: string
@@ -23,30 +22,28 @@ interface TextSelection {
   highlightElements: HTMLElement[]
 }
 
-// Custom context menu component
 const ContextMenu = ({
   position,
   onClose,
   onCreateIssue,
-  documentData = {}, // Renamed from 'document' to 'documentData'
-  selection = "", // Add selection parameter with default empty string
+  documentData = {}, 
+  selection = "", 
 }: {
   position: { x: number; y: number }
   onClose: () => void
   onCreateIssue: (formData: any) => void
-  documentData?: any // Renamed parameter type
+  documentData?: any 
   selection?: string
 }) => {
-  // Pre-populate title with selection text (truncated if too long)
+  
   const defaultTitle = selection ? (selection.length > 50 ? selection.substring(0, 47) + "..." : selection) : ""
 
   const [title, setTitle] = useState(defaultTitle)
-  const [tags, setTags] = useState<string[]>(["issue", "review"]) // Default tags
+  const [tags, setTags] = useState<string[]>(["issue", "review"]) 
   const [priority, setPriority] = useState("")
   const [notes, setNotes] = useState("")
   const menuRef = useRef<HTMLDivElement>(null)
 
-  // Get data from documents state
   const bookInfo = {
     bookNumber: documentData.bookNumber || "N/A",
     volume: documentData.volume || "N/A",
@@ -56,7 +53,6 @@ const ContextMenu = ({
     wordNumber: documentData.wordNumber || "N/A",
   }
 
-  // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -64,7 +60,7 @@ const ContextMenu = ({
       }
     }
 
-    document.addEventListener("mousedown", handleClickOutside) // Now using global document
+    document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [onClose])
 
@@ -78,7 +74,6 @@ const ContextMenu = ({
     })
   }
 
-  // Handle tag input
   const [tagInput, setTagInput] = useState("")
 
   const addTag = () => {
@@ -99,7 +94,7 @@ const ContextMenu = ({
       style={{
         left: position.x,
         top: position.y,
-        width: "400px", // Increased width to accommodate more fields
+        width: "400px", 
         transform: "translate(-50%, 10px)",
         animation: "fadeIn 0.2s ease-out",
         maxHeight: "90vh",
@@ -112,7 +107,7 @@ const ContextMenu = ({
         </h3>
 
         <form onSubmit={handleSubmit} className="space-y-3">
-          {/* Title (simple input field) */}
+       
           <div>
             <label className="block text-sm font-medium mb-1">Title</label>
             <input
@@ -123,7 +118,7 @@ const ContextMenu = ({
             />
           </div>
 
-          {/* Name of the book: volume: page (automated) */}
+          
           <div>
             <label className="block text-sm font-medium mb-1">Book Information</label>
             <div className="px-3 py-2 bg-white/30 dark:bg-gray-800/30 rounded-lg border border-gray-300 dark:border-gray-600 text-sm">
@@ -131,7 +126,7 @@ const ContextMenu = ({
             </div>
           </div>
 
-          {/* Original book Chapter/sub-chapter name (automated) */}
+          
           <div>
             <label className="block text-sm font-medium mb-1">Chapter</label>
             <div className="px-3 py-2 bg-white/30 dark:bg-gray-800/30 rounded-lg border border-gray-300 dark:border-gray-600 text-sm">
@@ -139,7 +134,7 @@ const ContextMenu = ({
             </div>
           </div>
 
-          {/* Tags (automated, editable) */}
+      
           <div>
             <label className="block text-sm font-medium mb-1">Tags</label>
             <div className="flex flex-wrap gap-2 mb-2">
@@ -183,7 +178,6 @@ const ContextMenu = ({
             </div>
           </div>
 
-          {/* Create Issue Button - Made more prominent */}
           <button
             type="submit"
             className="w-full py-3 px-4 mt-4 rounded-lg font-medium text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg text-lg"
@@ -207,13 +201,13 @@ export default function NewFatwaPage() {
   const [showMenu, setShowMenu] = useState(false)
   const contentRef = useRef<HTMLDivElement>(null)
 
-  // Dynamically import mammoth and DOMPurify to avoid SSR issues
+
   useEffect(() => {
     const loadDocument = async () => {
       try {
         setLoading(true)
 
-        // Get token from session storage
+
         const user = sessionStorage.getItem("user")
         const token = user ? JSON.parse(user).token : null
 
@@ -223,7 +217,7 @@ export default function NewFatwaPage() {
           return
         }
 
-        // Fetch the document
+
         const response = await fetch(`https://lkp.pathok.com.bd/api/book/book-file/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -246,10 +240,9 @@ export default function NewFatwaPage() {
             })
         }
 
-        // Convert document to HTML
         const arrayBuffer = await response.arrayBuffer()
 
-        // Dynamically import mammoth and DOMPurify
+
         const [mammoth, DOMPurifyModule] = await Promise.all([import("mammoth"), import("dompurify")])
 
         const DOMPurify = DOMPurifyModule.default
@@ -270,7 +263,7 @@ export default function NewFatwaPage() {
     }
   }, [id])
 
-  // Handle text selection
+ 
   useEffect(() => {
     const handleSelection = () => {
       const selection = window.getSelection()
@@ -281,7 +274,7 @@ export default function NewFatwaPage() {
 
       if (!selectedText) return
 
-      // Create a new selection object
+
       const newSelection: TextSelection = {
         id: nanoid(),
         text: selectedText,
@@ -294,13 +287,10 @@ export default function NewFatwaPage() {
         highlightElements: [],
       }
 
-      // Highlight the selected text
-      highlightRange(range, newSelection)
 
-      // Add to selections
+      highlightRange(range, newSelection)
       setSelections((prev) => [...prev, newSelection])
 
-      // Clear the selection to allow for new selections
       selection.removeAllRanges()
     }
 
@@ -316,18 +306,17 @@ export default function NewFatwaPage() {
     }
   }, [content])
 
-  // Function to highlight a range of text
+
   const highlightRange = (range: Range, selection: TextSelection) => {
     const highlightElements: HTMLElement[] = []
 
-    // Create a document fragment from the range
+
     const fragment = range.cloneContents()
 
-    // Create a temporary container
     const tempContainer = document.createElement("div")
     tempContainer.appendChild(fragment)
 
-    // Create a highlight span
+
     const highlightSpan = document.createElement("span")
     highlightSpan.className = "highlighted-text"
     highlightSpan.dataset.selectionId = selection.id
@@ -336,19 +325,17 @@ export default function NewFatwaPage() {
     highlightSpan.style.borderRadius = "2px"
     highlightSpan.style.padding = "0 2px"
 
-    // Replace the selected content with the highlighted version
+
     highlightSpan.innerHTML = tempContainer.innerHTML
     range.deleteContents()
     range.insertNode(highlightSpan)
 
-    // Add to highlight elements
     highlightElements.push(highlightSpan)
 
-    // Update the selection object
     selection.highlightElements = highlightElements
   }
 
-  // Handle right-click context menu
+
   const handleContextMenu = (e: React.MouseEvent) => {
     if (selections.length === 0) return
 
@@ -360,13 +347,12 @@ export default function NewFatwaPage() {
     setShowMenu(true)
   }
 
-  // Handle create issue
+
   const handleCreateIssue = async (formData: any) => {
     try {
-      // Combine all selected text into a single string
+
       const combinedText = selections.map((s) => s.text).join(" ")
 
-      // Get token from session storage
       const user = sessionStorage.getItem("user")
       const token = user ? JSON.parse(user).token : null
 
@@ -375,10 +361,9 @@ export default function NewFatwaPage() {
         return
       }
 
-      // Prepare data according to the backend interface
       const issueData = {
         title: formData.title,
-        status: "pending", // Default status
+        status: "pending", 
         bookNumber: formData.bookInfo.bookNumber,
         pageNumber: formData.bookInfo.page,
         volume: formData.bookInfo.volume,
@@ -387,7 +372,7 @@ export default function NewFatwaPage() {
         issue: combinedText,
       }
 
-      // Make POST request to the API
+
       const response = await fetch("https://lkp.pathok.com.bd/api/issue", {
         method: "POST",
         headers: {
@@ -407,10 +392,10 @@ export default function NewFatwaPage() {
       console.log("Issue created successfully:", result)
 
 
-      // Close the menu
+    
       setShowMenu(false)
 
-      // Clear all selections after creating issue
+     
       clearSelections()
     } catch (error) {
       console.error("Error creating issue:", error)
@@ -418,9 +403,9 @@ export default function NewFatwaPage() {
     }
   }
 
-  // Clear all selections
+ 
   const clearSelections = () => {
-    // Remove all highlight elements from the DOM
+  
     selections.forEach((selection) => {
       selection.highlightElements.forEach((el) => {
         if (el.parentNode) {
@@ -433,18 +418,12 @@ export default function NewFatwaPage() {
       })
     })
 
-    // Clear selections state
+
     setSelections([])
   }
-
-  // Add a new function to clear only the previous selection
   const clearPreviousSelection = () => {
     if (selections.length === 0) return
-
-    // Get the last selection
     const lastSelection = selections[selections.length - 1]
-
-    // Remove its highlight elements from the DOM
     lastSelection.highlightElements.forEach((el) => {
       if (el.parentNode) {
         const parent = el.parentNode
@@ -455,7 +434,6 @@ export default function NewFatwaPage() {
       }
     })
 
-    // Remove the last selection from the state
     setSelections((prev) => prev.slice(0, -1))
   }
 
@@ -493,9 +471,7 @@ export default function NewFatwaPage() {
         </div>
       </div>
 
-      {/* Main content area with selections panel and document */}
       <div className="flex flex-col md:flex-row gap-4">
-        {/* Selections panel - left side */}
         <div className="w-full md:w-1/4 bg-gray-800 rounded-lg p-4">
           <h2 className="text-lg font-semibold mb-4">Selected Text ({selections.length})</h2>
           {selections.length === 0 ? (
@@ -512,7 +488,6 @@ export default function NewFatwaPage() {
                     size="sm"
                     className="absolute top-2 right-2 h-6 w-6 p-0"
                     onClick={() => {
-                      // Remove this specific selection
                       const selectionToRemove = selections[index]
                       selectionToRemove.highlightElements.forEach((el) => {
                         if (el.parentNode) {
@@ -548,8 +523,6 @@ export default function NewFatwaPage() {
             </div>
           )}
         </div>
-
-        {/* Document content - right side */}
         <div className="w-full md:w-3/4">
           <div
             ref={contentRef}
@@ -579,7 +552,6 @@ export default function NewFatwaPage() {
         </div>
       </div>
 
-      {/* Custom Context Menu */}
       {showMenu && (
         <ContextMenu
           position={menuPosition}
@@ -590,7 +562,6 @@ export default function NewFatwaPage() {
         />
       )}
 
-      {/* Add custom styles */}
       <style jsx global>{`
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(10px); }
