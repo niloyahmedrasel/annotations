@@ -172,7 +172,7 @@ const RolePermissions = () => {
       }
 
       try {
-        const response = await fetch(`http://localhost:5000/api/permission/get-permissions`, {
+        const response = await fetch(`https://lkp.pathok.com.bd/api/permission/get-permissions`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
