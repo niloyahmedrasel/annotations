@@ -104,11 +104,11 @@ const navItems: NavItem[] = [
     submenu: [
       { title: "All Categories", href: "/dashboard/categories" },
       { title: "Book Categories", href: "/dashboard/categories/books" },
+      { title: "Book Type", href: "/dashboard/categories/book-type" },
+      { title: "Tags", href: "/dashboard/categories/tags" },
       { title: "Editors", href: "/dashboard/categories/editors" },
       { title: "Publishers", href: "/dashboard/categories/publishers" },
-      { title: "Authors", href: "/dashboard/categories/authors" },
-      { title: "Issue Categories", href: "/dashboard/categories/issue-categories" },
-      { title: "Issue Sub-categories", href: "/dashboard/categories/issue-subcategories" },
+      { title: "Authors", href: "/dashboard/categories/authors" }
     ],
   },
   {
@@ -298,7 +298,7 @@ export function Sidebar({ onCollapse }: SidebarProps) {
                   </Link>
                 )}
               </Button>
-              {/* Update the submenu rendering to use the new handler and fix active states */}
+              
               {!isCollapsed && item.submenu && openSubmenus[item.title] && (
                 <div className="mt-1 space-y-1 px-4">
                   {item.submenu.map((subitem) => (

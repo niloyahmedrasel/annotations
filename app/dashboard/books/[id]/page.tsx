@@ -156,7 +156,7 @@ export default function BookDetailsPage({ params }: { params: { id: string } }) 
     <div className="container mx-auto py-8">
       <h1 className="text-3xl font-bold mb-8">Book Details</h1>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Left Section: Book Cover Image */}
+
         <Card className="col-span-1">
           <CardContent className="p-4">
             <div className="relative aspect-[3/4] w-full">
@@ -175,7 +175,7 @@ export default function BookDetailsPage({ params }: { params: { id: string } }) 
           </CardContent>
         </Card>
 
-        {/* Middle Section: Book Information */}
+      
         <Card className="col-span-1 md:col-span-2">
           <CardContent className="p-6 space-y-4">
             <h2 className="text-2xl font-semibold">{book.title}</h2>
@@ -198,7 +198,7 @@ export default function BookDetailsPage({ params }: { params: { id: string } }) 
             </div>
             <p className="text-gray-600">{book.description || "No description available"}</p>
 
-            {/* Replace the Availability Settings section with this updated version */}
+
             <div className="mt-6 space-y-3 border-t pt-4">
               <h3 className="font-medium text-lg">Availability Settings</h3>
               <div className="space-y-2">

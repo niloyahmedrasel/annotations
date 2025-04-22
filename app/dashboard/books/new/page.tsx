@@ -12,6 +12,11 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
 import { Loader2 } from "lucide-react"
 
+interface DropdownOption {
+  _id: string
+  title: string
+}
+
 const bookFormSchema = z.object({
   title: z.string().min(2, { message: "Title must be at least 2 characters." }),
   author: z.string({ required_error: "Please select an author." }),
@@ -38,6 +43,17 @@ export default function BookFormPage() {
   const isEditMode = !!bookId
   const [isLoading, setIsLoading] = useState(isEditMode)
   const [bookData, setBookData] = useState<any>(null)
+  const [authors, setAuthors] = useState<DropdownOption[]>([])
+  const [editors, setEditors] = useState<DropdownOption[]>([])
+  const [publishers, setPublishers] = useState<DropdownOption[]>([])
+  const [bookTypes, setBookTypes] = useState<DropdownOption[]>([])
+  const [bookCategories, setBookCategories] = useState<DropdownOption[]>([])
+
+  const [authorsLoading, setAuthorsLoading] = useState(true)
+  const [editorsLoading, setEditorsLoading] = useState(true)
+  const [publishersLoading, setPublishersLoading] = useState(true)
+  const [bookTypesLoading, setBookTypesLoading] = useState(true)
+  const [bookCategoriesLoading, setBookCategoriesLoading] = useState(true)
 
   const form = useForm<z.infer<typeof bookFormSchema>>({
     resolver: zodResolver(bookFormSchema),
@@ -50,6 +66,147 @@ export default function BookFormPage() {
       category: "",
     },
   })
+
+  const getToken = () => {
+    const user = sessionStorage.getItem("user")
+    const token = user ? JSON.parse(user).token : null
+
+    if (!token) {
+      toast.error("Authentication required")
+      router.push("/login")
+      return null
+    }
+
+    return token
+  }
+
+  const fetchAuthors = async () => {
+    setAuthorsLoading(true)
+    try {
+      const token = getToken()
+      if (!token) return
+
+      const response = await fetch("https://lkp.pathok.com.bd/api/author", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) throw new Error("Failed to fetch authors")
+
+      const data = await response.json()
+      setAuthors(data.authors)
+    } catch (error) {
+      console.error("Error fetching authors:", error)
+      toast.error("Failed to load authors")
+    } finally {
+      setAuthorsLoading(false)
+    }
+  }
+
+  const fetchEditors = async () => {
+    setEditorsLoading(true)
+    try {
+      const token = getToken()
+      if (!token) return
+
+      const response = await fetch("https://lkp.pathok.com.bd/api/editor", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) throw new Error("Failed to fetch editors")
+
+      const data = await response.json()
+      setEditors(data.editors)
+    } catch (error) {
+      console.error("Error fetching editors:", error)
+      toast.error("Failed to load editors")
+    } finally {
+      setEditorsLoading(false)
+    }
+  }
+
+  const fetchPublishers = async () => {
+    setPublishersLoading(true)
+    try {
+      const token = getToken()
+      if (!token) return
+
+      const response = await fetch("https://lkp.pathok.com.bd/api/publisher", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) throw new Error("Failed to fetch publishers")
+
+      const data = await response.json()
+      setPublishers(data.publishers)
+    } catch (error) {
+      console.error("Error fetching publishers:", error)
+      toast.error("Failed to load publishers")
+    } finally {
+      setPublishersLoading(false)
+    }
+  }
+
+  const fetchBookTypes = async () => {
+    setBookTypesLoading(true)
+    try {
+      const token = getToken()
+      if (!token) return
+
+      const response = await fetch("https://lkp.pathok.com.bd/api/bookType", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) throw new Error("Failed to fetch book types")
+
+      const data = await response.json()
+      setBookTypes(data.bookTypes)
+    } catch (error) {
+      console.error("Error fetching book types:", error)
+      toast.error("Failed to load book types")
+    } finally {
+      setBookTypesLoading(false)
+    }
+  }
+
+  const fetchBookCategories = async () => {
+    setBookCategoriesLoading(true)
+    try {
+      const token = getToken()
+      if (!token) return
+
+      const response = await fetch("https://lkp.pathok.com.bd/api/bookCategory", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) throw new Error("Failed to fetch book categories")
+
+      const data = await response.json()
+      setBookCategories(data.bookCategories)
+    } catch (error) {
+      console.error("Error fetching book categories:", error)
+      toast.error("Failed to load book categories")
+    } finally {
+      setBookCategoriesLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchAuthors()
+    fetchEditors()
+    fetchPublishers()
+    fetchBookTypes()
+    fetchBookCategories()
+  }, [router])
 
   useEffect(() => {
     if (isEditMode) {
@@ -76,7 +233,6 @@ export default function BookFormPage() {
           const data = await response.json()
           setBookData(data.book)
 
-          
           form.reset({
             title: data.book.title || "",
             author: data.book.author || "",
@@ -125,7 +281,6 @@ export default function BookFormPage() {
       let response
 
       if (isEditMode) {
-        
         response = await fetch(`https://lkp.pathok.com.bd/api/book/${bookId}`, {
           method: "PUT",
           headers: {
@@ -134,7 +289,6 @@ export default function BookFormPage() {
           body: formData,
         })
       } else {
-        
         response = await fetch("https://lkp.pathok.com.bd/api/book", {
           method: "POST",
           headers: {
@@ -201,9 +355,20 @@ export default function BookFormPage() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="jane-austen">Jane Austen</SelectItem>
-                    <SelectItem value="mark-twain">Mark Twain</SelectItem>
-                    <SelectItem value="george-orwell">George Orwell</SelectItem>
+                    {authorsLoading ? (
+                      <div className="flex items-center justify-center p-2">
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        <span>Loading...</span>
+                      </div>
+                    ) : authors.length > 0 ? (
+                      authors.map((author) => (
+                        <SelectItem key={author._id} value={author._id}>
+                          {author.title}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <div className="p-2 text-center text-sm">No authors found</div>
+                    )}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -224,8 +389,20 @@ export default function BookFormPage() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="john-doe">John Doe</SelectItem>
-                    <SelectItem value="jane-smith">Jane Smith</SelectItem>
+                    {editorsLoading ? (
+                      <div className="flex items-center justify-center p-2">
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        <span>Loading...</span>
+                      </div>
+                    ) : editors.length > 0 ? (
+                      editors.map((editor) => (
+                        <SelectItem key={editor._id} value={editor._id}>
+                          {editor.title}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <div className="p-2 text-center text-sm">No editors found</div>
+                    )}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -246,8 +423,20 @@ export default function BookFormPage() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="penguin">Penguin Books</SelectItem>
-                    <SelectItem value="harpercollins">HarperCollins</SelectItem>
+                    {publishersLoading ? (
+                      <div className="flex items-center justify-center p-2">
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        <span>Loading...</span>
+                      </div>
+                    ) : publishers.length > 0 ? (
+                      publishers.map((publisher) => (
+                        <SelectItem key={publisher._id} value={publisher._id}>
+                          {publisher.title}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <div className="p-2 text-center text-sm">No publishers found</div>
+                    )}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -268,9 +457,20 @@ export default function BookFormPage() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="legal">Legal</SelectItem>
-                    <SelectItem value="scholarly">Scholarly</SelectItem>
-                    <SelectItem value="religious">Religious</SelectItem>
+                    {bookTypesLoading ? (
+                      <div className="flex items-center justify-center p-2">
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        <span>Loading...</span>
+                      </div>
+                    ) : bookTypes.length > 0 ? (
+                      bookTypes.map((type) => (
+                        <SelectItem key={type._id} value={type._id}>
+                          {type.title}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <div className="p-2 text-center text-sm">No book types found</div>
+                    )}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -291,10 +491,20 @@ export default function BookFormPage() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="fiction">Fiction</SelectItem>
-                    <SelectItem value="non-fiction">Non-fiction</SelectItem>
-                    <SelectItem value="science">Science</SelectItem>
-                    <SelectItem value="history">History</SelectItem>
+                    {bookCategoriesLoading ? (
+                      <div className="flex items-center justify-center p-2">
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        <span>Loading...</span>
+                      </div>
+                    ) : bookCategories.length > 0 ? (
+                      bookCategories.map((category) => (
+                        <SelectItem key={category._id} value={category._id}>
+                          {category.title}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <div className="p-2 text-center text-sm">No categories found</div>
+                    )}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -351,4 +561,3 @@ export default function BookFormPage() {
     </div>
   )
 }
-

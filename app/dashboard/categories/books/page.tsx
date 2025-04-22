@@ -1,92 +1,174 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { PlusCircle, Trash2 } from "lucide-react"
+import { PlusCircle, Trash2, Search } from "lucide-react"
+import { ToastContainer, toast } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
 
-interface Category {
-  id: string
-  name: string
-  description: string
-  bookCount: number
+interface BookCategory {
+  _id: string
+  title: string
 }
 
-const initialCategories: Category[] = [
-  { id: "1", name: "Fiction", description: "Fictional literature", bookCount: 150 },
-  { id: "2", name: "Non-fiction", description: "Factual and informative books", bookCount: 200 },
-  { id: "3", name: "Science", description: "Scientific literature and textbooks", bookCount: 75 },
-]
-
 export default function BookCategoriesPage() {
-  const [categories, setCategories] = useState<Category[]>(initialCategories)
-  const [newCategory, setNewCategory] = useState({ name: "", description: "" })
+  const [bookCategories, setBookCategories] = useState<BookCategory[]>([])
+  const [newBookCategory, setNewBookCategory] = useState({ title: "" })
+  const [searchQuery, setSearchQuery] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+ 
+  const user = sessionStorage.getItem("user")
+  const token = user ? JSON.parse(user).token : null
 
-  const addCategory = () => {
-    if (newCategory.name.trim() !== "") {
-      setCategories([
-        ...categories,
-        {
-          id: Date.now().toString(),
-          name: newCategory.name,
-          description: newCategory.description,
-          bookCount: 0,
+  useEffect(() => {
+    fetchBookCategories()
+  }, [])
+  
+  const fetchBookCategories = async () => {
+    setIsLoading(true)
+    try {
+      const response = await fetch("https://lkp.pathok.com.bd/api/bookCategory", {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      ])
-      setNewCategory({ name: "", description: "" })
+      })
+      if (!response.ok) {
+        throw new Error("Failed to fetch book categories")
+      }
+      const data = await response.json()
+      setBookCategories(data.bookCategories)
+    } catch (error) {
+      toast.error("Failed to load book categories")
+      console.error(error)
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  const deleteCategory = (id: string) => {
-    setCategories(categories.filter((category) => category.id !== id))
+  const addBookCategory = async () => {
+    if (newBookCategory.title.trim() === "") {
+      toast.warning("Book category title cannot be empty")
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const response = await fetch("https://lkp.pathok.com.bd/api/bookCategory", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(newBookCategory),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to add book category")
+      }
+
+      fetchBookCategories()
+      toast.success("Book category added successfully")
+      setNewBookCategory({ title: "" })
+    } catch (error) {
+      toast.error("Failed to add book category")
+      console.error(error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
+  const deleteBookCategory = async (id: string) => {
+    setIsLoading(true)
+    try {
+      const response = await fetch(`https://lkp.pathok.com.bd/api/bookCategory/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to delete book category")
+      }
+
+      setBookCategories(bookCategories.filter((category) => category._id !== id))
+      toast.success("Book category deleted successfully")
+    } catch (error) {
+      toast.error("Failed to delete book category")
+      console.error(error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const filteredBookCategories =
+    bookCategories && bookCategories.length > 0
+      ? bookCategories.filter((category) => category.title.toLowerCase().includes(searchQuery.toLowerCase()))
+      : []
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
+      <ToastContainer position="top-right" autoClose={3000} />
+
       <h1 className="text-3xl font-bold">Book Categories</h1>
+
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Search book categories..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-10"
+        />
+      </div>
+
       <div className="flex space-x-4">
         <Input
-          placeholder="Category name"
-          value={newCategory.name}
-          onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
+          placeholder="Book category title"
+          value={newBookCategory.title}
+          onChange={(e) => setNewBookCategory({ title: e.target.value })}
         />
-        <Input
-          placeholder="Category description"
-          value={newCategory.description}
-          onChange={(e) => setNewCategory({ ...newCategory, description: e.target.value })}
-        />
-        <Button onClick={addCategory}>
+        <Button onClick={addBookCategory} disabled={isLoading}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Add Category
         </Button>
       </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Description</TableHead>
-            <TableHead>Book Count</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {categories.map((category) => (
-            <TableRow key={category.id}>
-              <TableCell className="font-medium">{category.name}</TableCell>
-              <TableCell>{category.description}</TableCell>
-              <TableCell>{category.bookCount}</TableCell>
-              <TableCell className="text-right">
-                <Button variant="ghost" size="sm" onClick={() => deleteCategory(category.id)}>
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete
-                </Button>
-              </TableCell>
+
+      {isLoading ? (
+        <div className="text-center py-8">Loading book categories...</div>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Title</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {!bookCategories || filteredBookCategories.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={2} className="text-center py-8">
+                  {searchQuery ? "No book categories match your search" : "No book categories found"}
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredBookCategories.map((category) => (
+                <TableRow key={category._id}>
+                  <TableCell className="font-medium">{category.title}</TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="sm" onClick={() => deleteBookCategory(category._id)} disabled={isLoading}>
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      )}
     </div>
   )
 }
-

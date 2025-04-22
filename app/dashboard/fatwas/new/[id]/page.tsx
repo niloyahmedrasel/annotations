@@ -22,24 +22,29 @@ interface TextSelection {
   highlightElements: HTMLElement[]
 }
 
+interface Tag {
+  _id: string
+  title: string
+}
+
 const ContextMenu = ({
   position,
   onClose,
   onCreateIssue,
-  documentData = {}, 
-  selection = "", 
+  documentData = {},
+  selection = "",
 }: {
   position: { x: number; y: number }
   onClose: () => void
   onCreateIssue: (formData: any) => void
-  documentData?: any 
+  documentData?: any
   selection?: string
 }) => {
-  
   const defaultTitle = selection ? (selection.length > 50 ? selection.substring(0, 47) + "..." : selection) : ""
 
   const [title, setTitle] = useState(defaultTitle)
-  const [tags, setTags] = useState<string[]>(["issue", "review"]) 
+  const [tags, setTags] = useState<string[]>([])
+  const [tagsLoading, setTagsLoading] = useState(true)
   const [priority, setPriority] = useState("")
   const [notes, setNotes] = useState("")
   const menuRef = useRef<HTMLDivElement>(null)
@@ -52,6 +57,48 @@ const ContextMenu = ({
     lineNumber: documentData.lineNumber || "N/A",
     wordNumber: documentData.wordNumber || "N/A",
   }
+
+  
+  useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        setTagsLoading(true)
+        const user = sessionStorage.getItem("user")
+        const token = user ? JSON.parse(user).token : null
+
+        if (!token) {
+          toast.error("Authentication required")
+          return
+        }
+
+        const response = await fetch("https://lkp.pathok.com.bd/api/tag", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch tags")
+        }
+
+        const data = await response.json()
+        const newData = data.tags
+        
+        if (newData && newData.length > 0) {
+          const tagTitles = newData.map((tag: Tag) => tag.title)
+          setTags(tagTitles)
+        }
+      } catch (error) {
+        console.error("Error fetching tags:", error)
+
+        setTags(["issue", "review"])
+      } finally {
+        setTagsLoading(false)
+      }
+    }
+
+    fetchTags()
+  }, [])
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -94,7 +141,7 @@ const ContextMenu = ({
       style={{
         left: position.x,
         top: position.y,
-        width: "400px", 
+        width: "400px",
         transform: "translate(-50%, 10px)",
         animation: "fadeIn 0.2s ease-out",
         maxHeight: "90vh",
@@ -107,7 +154,6 @@ const ContextMenu = ({
         </h3>
 
         <form onSubmit={handleSubmit} className="space-y-3">
-       
           <div>
             <label className="block text-sm font-medium mb-1">Title</label>
             <input
@@ -118,7 +164,6 @@ const ContextMenu = ({
             />
           </div>
 
-          
           <div>
             <label className="block text-sm font-medium mb-1">Book Information</label>
             <div className="px-3 py-2 bg-white/30 dark:bg-gray-800/30 rounded-lg border border-gray-300 dark:border-gray-600 text-sm">
@@ -126,7 +171,6 @@ const ContextMenu = ({
             </div>
           </div>
 
-          
           <div>
             <label className="block text-sm font-medium mb-1">Chapter</label>
             <div className="px-3 py-2 bg-white/30 dark:bg-gray-800/30 rounded-lg border border-gray-300 dark:border-gray-600 text-sm">
@@ -134,26 +178,32 @@ const ContextMenu = ({
             </div>
           </div>
 
-      
           <div>
             <label className="block text-sm font-medium mb-1">Tags</label>
-            <div className="flex flex-wrap gap-2 mb-2">
-              {tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 rounded-full text-xs flex items-center"
-                >
-                  {tag}
-                  <button
-                    type="button"
-                    onClick={() => removeTag(tag)}
-                    className="ml-1 text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200"
+            {tagsLoading ? (
+              <div className="flex items-center justify-center py-2">
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                <span className="text-sm">Loading tags...</span>
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-2 mb-2">
+                {tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 rounded-full text-xs flex items-center"
                   >
-                    ×
-                  </button>
-                </span>
-              ))}
-            </div>
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => removeTag(tag)}
+                      className="ml-1 text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
             <div className="flex">
               <input
                 type="text"
@@ -201,12 +251,10 @@ export default function NewFatwaPage() {
   const [showMenu, setShowMenu] = useState(false)
   const contentRef = useRef<HTMLDivElement>(null)
 
-
   useEffect(() => {
     const loadDocument = async () => {
       try {
         setLoading(true)
-
 
         const user = sessionStorage.getItem("user")
         const token = user ? JSON.parse(user).token : null
@@ -216,7 +264,6 @@ export default function NewFatwaPage() {
           setLoading(false)
           return
         }
-
 
         const response = await fetch(`https://lkp.pathok.com.bd/api/book/book-file/${id}`, {
           headers: {
@@ -242,7 +289,6 @@ export default function NewFatwaPage() {
 
         const arrayBuffer = await response.arrayBuffer()
 
-
         const [mammoth, DOMPurifyModule] = await Promise.all([import("mammoth"), import("dompurify")])
 
         const DOMPurify = DOMPurifyModule.default
@@ -263,7 +309,6 @@ export default function NewFatwaPage() {
     }
   }, [id])
 
- 
   useEffect(() => {
     const handleSelection = () => {
       const selection = window.getSelection()
@@ -273,7 +318,6 @@ export default function NewFatwaPage() {
       const selectedText = selection.toString().trim()
 
       if (!selectedText) return
-
 
       const newSelection: TextSelection = {
         id: nanoid(),
@@ -286,7 +330,6 @@ export default function NewFatwaPage() {
         },
         highlightElements: [],
       }
-
 
       highlightRange(range, newSelection)
       setSelections((prev) => [...prev, newSelection])
@@ -306,16 +349,13 @@ export default function NewFatwaPage() {
     }
   }, [content])
 
-
   const highlightRange = (range: Range, selection: TextSelection) => {
     const highlightElements: HTMLElement[] = []
-
 
     const fragment = range.cloneContents()
 
     const tempContainer = document.createElement("div")
     tempContainer.appendChild(fragment)
-
 
     const highlightSpan = document.createElement("span")
     highlightSpan.className = "highlighted-text"
@@ -325,7 +365,6 @@ export default function NewFatwaPage() {
     highlightSpan.style.borderRadius = "2px"
     highlightSpan.style.padding = "0 2px"
 
-
     highlightSpan.innerHTML = tempContainer.innerHTML
     range.deleteContents()
     range.insertNode(highlightSpan)
@@ -334,7 +373,6 @@ export default function NewFatwaPage() {
 
     selection.highlightElements = highlightElements
   }
-
 
   const handleContextMenu = (e: React.MouseEvent) => {
     if (selections.length === 0) return
@@ -347,10 +385,8 @@ export default function NewFatwaPage() {
     setShowMenu(true)
   }
 
-
   const handleCreateIssue = async (formData: any) => {
     try {
-
       const combinedText = selections.map((s) => s.text).join(" ")
 
       const user = sessionStorage.getItem("user")
@@ -363,7 +399,7 @@ export default function NewFatwaPage() {
 
       const issueData = {
         title: formData.title,
-        status: "pending", 
+        status: "pending",
         bookNumber: formData.bookInfo.bookNumber,
         pageNumber: formData.bookInfo.page,
         volume: formData.bookInfo.volume,
@@ -371,7 +407,6 @@ export default function NewFatwaPage() {
         tags: formData.tags,
         issue: combinedText,
       }
-
 
       const response = await fetch("https://lkp.pathok.com.bd/api/issue", {
         method: "POST",
@@ -391,11 +426,8 @@ export default function NewFatwaPage() {
       const result = await response.json()
       console.log("Issue created successfully:", result)
 
-
-    
       setShowMenu(false)
 
-     
       clearSelections()
     } catch (error) {
       console.error("Error creating issue:", error)
@@ -403,9 +435,7 @@ export default function NewFatwaPage() {
     }
   }
 
- 
   const clearSelections = () => {
-  
     selections.forEach((selection) => {
       selection.highlightElements.forEach((el) => {
         if (el.parentNode) {
@@ -417,7 +447,6 @@ export default function NewFatwaPage() {
         }
       })
     })
-
 
     setSelections([])
   }

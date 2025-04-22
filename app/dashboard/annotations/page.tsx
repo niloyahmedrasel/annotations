@@ -42,37 +42,30 @@ type SortField = "id" | "title" | "task_number" | "progress" | "created_by" | "c
 type SortDirection = "asc" | "desc"
 
 export default function ProjectsPage() {
-  // State
+  
   const [projects, setProjects] = useState<Project[]>([])
   const [filteredProjects, setFilteredProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
-  // Search and filter
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<string | null>(null)
-
-  // Sorting
   const [sortField, setSortField] = useState<SortField | null>(null)
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
-
-  // Pagination
   const [currentPage, setCurrentPage] = useState(1)
   const [projectsPerPage] = useState(10)
 
-  // Fetch projects - simplified to avoid CORS and network issues
   useEffect(() => {
     async function fetchProjects() {
       try {
         setLoading(true)
         setError(null)
 
-        // Simple fetch without pagination handling to avoid potential issues
+   
         const res = await fetch("https://studio.pathok.com.bd/api/projects", {
           headers: {
             Authorization: "Token 685298f62992e1d89d8283b273247c6f9d7e7a0a",
           },
-          // Add cache control to avoid caching issues
+     
           cache: "no-cache",
         })
 
@@ -82,7 +75,6 @@ export default function ProjectsPage() {
 
         const data = await res.json()
 
-        // Handle different API response formats
         const projectsData = Array.isArray(data) ? data : data.results || []
         console.log(`Fetched ${projectsData.length} projects`)
 
@@ -92,7 +84,6 @@ export default function ProjectsPage() {
       } catch (error) {
         console.error("Error fetching projects:", error)
 
-        // Provide more detailed error information
         let errorMessage = "Failed to load projects"
         if (error instanceof Error) {
           errorMessage = `${errorMessage}: ${error.message}`
@@ -106,7 +97,6 @@ export default function ProjectsPage() {
         setError(errorMessage)
         setLoading(false)
 
-        // Set empty projects array to avoid undefined errors
         setProjects([])
         setFilteredProjects([])
       }
@@ -115,11 +105,9 @@ export default function ProjectsPage() {
     fetchProjects()
   }, [])
 
-  // Apply search, filter, and sort
   useEffect(() => {
     let result = [...projects]
 
-    // Apply search
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase()
       result = result.filter(
@@ -130,12 +118,10 @@ export default function ProjectsPage() {
       )
     }
 
-    // Apply status filter
     if (statusFilter) {
       result = result.filter((project) => (statusFilter === "Published" ? project.is_published : !project.is_published))
     }
 
-    // Apply sorting
     if (sortField) {
       result.sort((a, b) => {
         let comparison = 0
@@ -170,10 +156,9 @@ export default function ProjectsPage() {
     }
 
     setFilteredProjects(result)
-    setCurrentPage(1) // Reset to first page when filters change
+    setCurrentPage(1) 
   }, [projects, searchTerm, statusFilter, sortField, sortDirection])
 
-  // Handle sort
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc")
@@ -183,7 +168,6 @@ export default function ProjectsPage() {
     }
   }
 
-  // Get sort icon
   const getSortIcon = (field: SortField) => {
     if (sortField !== field) return null
     return sortDirection === "asc" ? (
@@ -193,29 +177,24 @@ export default function ProjectsPage() {
     )
   }
 
-  // Clear all filters
   const clearFilters = () => {
     setSearchTerm("")
     setStatusFilter(null)
     setSortField(null)
   }
 
-  // Retry fetching
   const retryFetch = () => {
     setLoading(true)
     setError(null)
 
-    // Force a re-render to trigger the useEffect
     setProjects([])
   }
 
-  // Pagination - client-side pagination on the filtered results
   const indexOfLastProject = currentPage * projectsPerPage
   const indexOfFirstProject = indexOfLastProject - projectsPerPage
   const currentProjects = filteredProjects.slice(indexOfFirstProject, indexOfLastProject)
   const totalPages = Math.ceil(filteredProjects.length / projectsPerPage)
 
-  // Loading state
   if (loading) {
     return (
       <div className="space-y-6">
@@ -228,7 +207,6 @@ export default function ProjectsPage() {
     )
   }
 
-  // Error state
   if (error) {
     return (
       <div className="space-y-6">
@@ -263,7 +241,6 @@ export default function ProjectsPage() {
     <div className="space-y-6">
       <h1 className="text-3xl font-bold">Label Studio Projects</h1>
 
-      {/* Search and filters */}
       <Card>
         <CardContent className="p-4 space-y-4">
           <div className="relative">
@@ -304,7 +281,6 @@ export default function ProjectsPage() {
         </CardContent>
       </Card>
 
-      {/* Results count */}
       <div className="flex items-center justify-between">
         <p className="text-muted-foreground">
           Showing {currentProjects.length} of {filteredProjects.length} projects
@@ -312,7 +288,6 @@ export default function ProjectsPage() {
         </p>
       </div>
 
-      {/* Projects table */}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -440,7 +415,6 @@ export default function ProjectsPage() {
         </Table>
       </div>
 
-      {/* Pagination */}
       {filteredProjects.length > 0 && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">

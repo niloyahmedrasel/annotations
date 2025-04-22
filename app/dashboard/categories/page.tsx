@@ -3,11 +3,11 @@ import { Button } from "@/components/ui/button"
 
 const categories = [
   { title: "Book Categories", href: "/dashboard/categories/books" },
+  { title: "Book Types", href: "/dashboard/categories/book-type" },
   { title: "Editors", href: "/dashboard/categories/editors" },
   { title: "Publishers", href: "/dashboard/categories/publishers" },
   { title: "Authors", href: "/dashboard/categories/authors" },
-  { title: "Issue Categories", href: "/dashboard/categories/issue-categories" },
-  { title: "Issue Sub-categories", href: "/dashboard/categories/issue-subcategories" }
+  { title: "Tags", href: "/dashboard/categories/tags" },
 ]
 
 export default function CategoriesPage() {

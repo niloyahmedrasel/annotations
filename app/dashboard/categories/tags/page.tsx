@@ -8,81 +8,81 @@ import { PlusCircle, Trash2, Search } from "lucide-react"
 import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 
-interface Author {
+interface Tag {
   _id: string
   title: string
 }
 
-export default function AuthorsPage() {
-  const [authors, setAuthors] = useState<Author[]>([])
-  const [newAuthor, setNewAuthor] = useState({ title: "" })
+export default function TagsPage() {
+  const [tags, setTags] = useState<Tag[]>([])
+  const [newTag, setNewTag] = useState({ title: "" })
   const [searchQuery, setSearchQuery] = useState("")
   const [isLoading, setIsLoading] = useState(false)
  
   const user = sessionStorage.getItem("user")
   const token = user ? JSON.parse(user).token : null
 
-
   useEffect(() => {
-    fetchAuthors()
+    fetchTags()
   }, [])
-  const fetchAuthors = async () => {
+  
+  const fetchTags = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch("https://lkp.pathok.com.bd/api/author",{
+      const response = await fetch("https://lkp.pathok.com.bd/api/tag", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       })
       if (!response.ok) {
-        throw new Error("Failed to fetch authors")
+        throw new Error("Failed to fetch tags")
       }
       const data = await response.json()
-      setAuthors(data.authors)
+      setTags(data.tags)
     } catch (error) {
-      toast.error("Failed to load authors")
+      toast.error("Failed to load tags")
       console.error(error)
     } finally {
       setIsLoading(false)
     }
   }
 
-  const addAuthor = async () => {
-    if (newAuthor.title.trim() === "") {
-      toast.warning("Author title cannot be empty")
+  const addTag = async () => {
+    if (newTag.title.trim() === "") {
+      toast.warning("Tag title cannot be empty")
       return
     }
 
     setIsLoading(true)
     try {
-      const response = await fetch("https://lkp.pathok.com.bd/api/author", {
+      const response = await fetch("https://lkp.pathok.com.bd/api/tag", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(newAuthor),
+        body: JSON.stringify(newTag),
       })
 
       if (!response.ok) {
-        throw new Error("Failed to add author")
+        throw new Error("Failed to add tag")
       }
 
-      fetchAuthors()
-      toast.success("Author added successfully")
-      setNewAuthor({ title: "" })
+      fetchTags()
+      toast.success("Tag added successfully")
+      setNewTag({ title: "" })
     } catch (error) {
-      toast.error("Failed to add author")
+      toast.error("Failed to add tag")
       console.error(error)
     } finally {
       setIsLoading(false)
     }
   }
 
-  const deleteAuthor = async (id: string) => {
+  const deleteTag = async (id: string) => {
     setIsLoading(true)
     try {
-      const response = await fetch(`https://lkp.pathok.com.bd/api/author/${id}`, {
+      const response = await fetch(`https://lkp.pathok.com.bd/api/tag/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -90,57 +90,54 @@ export default function AuthorsPage() {
       })
 
       if (!response.ok) {
-        throw new Error("Failed to delete author")
+        throw new Error("Failed to delete tag")
       }
 
-      setAuthors(authors.filter((author) => author._id !== id))
-      toast.success("Author deleted successfully")
+      setTags(tags.filter((tag) => tag._id !== id))
+      toast.success("Tag deleted successfully")
     } catch (error) {
-      toast.error("Failed to delete author")
+      toast.error("Failed to delete tag")
       console.error(error)
     } finally {
       setIsLoading(false)
     }
   }
 
-  const filteredAuthors =
-    authors && authors.length > 0
-      ? authors.filter((author) => author.title.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredTags =
+    tags && tags.length > 0
+      ? tags.filter((tag) => tag.title.toLowerCase().includes(searchQuery.toLowerCase()))
       : []
 
   return (
     <div className="space-y-6 p-6">
       <ToastContainer position="top-right" autoClose={3000} />
 
-      <h1 className="text-3xl font-bold">Authors</h1>
+      <h1 className="text-3xl font-bold">Tags</h1>
 
-      {/* Search bar */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Search authors..."
+          placeholder="Search tags..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-10"
         />
       </div>
 
-      {/* Add author form */}
       <div className="flex space-x-4">
         <Input
-          placeholder="Author title"
-          value={newAuthor.title}
-          onChange={(e) => setNewAuthor({ title: e.target.value })}
+          placeholder="Tag title"
+          value={newTag.title}
+          onChange={(e) => setNewTag({ title: e.target.value })}
         />
-        <Button onClick={addAuthor} disabled={isLoading}>
+        <Button onClick={addTag} disabled={isLoading}>
           <PlusCircle className="mr-2 h-4 w-4" />
-          Add Author
+          Add Tag
         </Button>
       </div>
 
-      {/* Authors table */}
       {isLoading ? (
-        <div className="text-center py-8">Loading authors...</div>
+        <div className="text-center py-8">Loading tags...</div>
       ) : (
         <Table>
           <TableHeader>
@@ -150,18 +147,18 @@ export default function AuthorsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {!authors || filteredAuthors.length === 0 ? (
+            {!tags || filteredTags.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={2} className="text-center py-8">
-                  {searchQuery ? "No authors match your search" : "No authors found"}
+                  {searchQuery ? "No tags match your search" : "No tags found"}
                 </TableCell>
               </TableRow>
             ) : (
-              filteredAuthors.map((author) => (
-                <TableRow key={author._id}>
-                  <TableCell className="font-medium">{author.title}</TableCell>
+              filteredTags.map((tag) => (
+                <TableRow key={tag._id}>
+                  <TableCell className="font-medium">{tag.title}</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" onClick={() => deleteAuthor(author._id)} disabled={isLoading}>
+                    <Button variant="ghost" size="sm" onClick={() => deleteTag(tag._id)} disabled={isLoading}>
                       <Trash2 className="mr-2 h-4 w-4" />
                       Delete
                     </Button>
