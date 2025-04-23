@@ -72,7 +72,7 @@ const navItems: NavItem[] = [
         submenu: [
           { title: "Upload Doc", href: "/dashboard/books/new" },
           { title: "Shamela Scraper", href: "/dashboard/books/shamela" },
-          { title: "Upload PDF", href: "" },
+          { title: "Upload PDF", href: "/" },
         ],
       }
     ],
@@ -116,12 +116,6 @@ const navItems: NavItem[] = [
     href: "/dashboard/scholars",
     icon: User,
     roles: ["Super Admin"],
-    submenu: [
-      { title: "Directory", href: "/dashboard/scholars" },
-      { title: "Add Scholar", href: "/dashboard/scholars/new" },
-      { title: "Link Management", href: "/dashboard/scholars/links" },
-      { title: "Add Link", href: "/dashboard/scholars/links/add" },
-    ],
   },
   {
     title: "Score Management",

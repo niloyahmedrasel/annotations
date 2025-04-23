@@ -93,33 +93,7 @@ const RolePermissions = () => {
     }
   }
 
-  const addNewGroup = async () => {
-    if (!groupName.trim()) {
-      toast.error("Group name cannot be empty!")
-      return
-    }
-
-    try {
-      const user = JSON.parse(sessionStorage.getItem("user") || "{}")
-      const token = user.token
-
-      const response = await fetch("https://lkp.pathok.com.bd/api/permission/create-permission-group", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ category: groupName }),
-      })
-
-      if (!response.ok) throw new Error("Failed to create group")
-
-      toast.success("Group created successfully!")
-      setGroupName("")
-    } catch (error: any) {
-      toast.error(error.message || "Something went wrong")
-    }
-  }
+  
 
   useEffect(() => {
     const fetchPermissions = async () => {
@@ -216,56 +190,6 @@ const RolePermissions = () => {
     fetchData()
   }, [])
 
-  const addNewPermission = async () => {
-    if (!newPermission.category || !newPermission.action) {
-      toast.error("Category and action are required")
-      return
-    }
-
-    const user = sessionStorage.getItem("user")
-    const token = user ? JSON.parse(user).token : null
-
-    if (!token) {
-      toast.error("You must be logged in to add permissions")
-      return
-    }
-
-    const requestData = {
-      categoryName: newPermission.category,
-      action: [{ name: newPermission.action }],
-    }
-
-    try {
-      const response = await fetch("https://lkp.pathok.com.bd/api/permission/add-action", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(requestData),
-      })
-
-      if (!response.ok) throw new Error("Failed to add permission")
-
-      const data = await response.json()
-      setPermissions(prev => {
-        const categoryIndex = prev.findIndex(cat => cat.name === data.categoryName)
-        if (categoryIndex !== -1) {
-          const updated = [...prev]
-          updated[categoryIndex].actions.push(...(data.action ?? []))
-          return updated
-        }
-        return [...prev, { name: data.categoryName, actions: data.action ?? [] }]
-      })
-
-      setNewPermission({ category: "", action: "" })
-      toast.success("Permission added successfully")
-    } catch (error) {
-      console.error("Error adding permission:", error)
-      toast.error("Failed to add permission")
-    }
-  }
-
   const toggleCategory = (categoryName: string) => {
     setExpandedCategories(prev =>
       prev.includes(categoryName) ? prev.filter(name => name !== categoryName) : [...prev, categoryName]
@@ -282,48 +206,6 @@ const RolePermissions = () => {
 
   return (
     <div className="container mx-auto py-10">
-      <div className="flex">
-        <Input
-          placeholder="Create New Group"
-          className="w-1/3 mb-5 mr-2"
-          value={groupName}
-          onChange={(e) => setGroupName(e.target.value)}
-        />
-        <Button onClick={addNewGroup} className="whitespace-nowrap">
-          <Plus className="mr-2" /> Add New Group
-        </Button>
-      </div>
-
-      <div className="mb-6 flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
-        <Select
-          value={newPermission.category}
-          onValueChange={(value) => setNewPermission(p => ({ ...p, category: value }))}
-        >
-          <SelectTrigger className="w-[200px]">
-            {newPermission.category ? (
-              <SelectValue>{newPermission.category}</SelectValue>
-            ) : (
-              <span className="text-gray-400">Select Group</span>
-            )}
-          </SelectTrigger>
-          <SelectContent>
-            {permissions.map((category) => (
-              <SelectItem key={category.name} value={category.name}>
-                {category.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Input
-          placeholder="Action"
-          value={newPermission.action}
-          onChange={(e) => setNewPermission(p => ({ ...p, action: e.target.value }))}
-          className="flex-1"
-        />
-        <Button onClick={addNewPermission} className="whitespace-nowrap">
-          <Plus className="mr-2 h-4 w-4" /> Add New Permission
-        </Button>
-      </div>
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
