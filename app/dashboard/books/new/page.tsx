@@ -96,9 +96,9 @@ export default function BookFormPage() {
 
       const data = await response.json()
       setAuthors(data.authors)
-    } catch (error) {
-      console.error("Error fetching authors:", error)
-      toast.error("Failed to load authors")
+    } catch (error: any) {
+      console.error("Error fetching authors:", error.message)
+      toast.error(error.message)
     } finally {
       setAuthorsLoading(false)
     }
@@ -167,10 +167,13 @@ export default function BookFormPage() {
       if (!response.ok) throw new Error("Failed to fetch book types")
 
       const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data?.message || 'Failed to fetch book categories')
+      }
       setBookTypes(data.bookTypes)
-    } catch (error) {
+    } catch (error:any) {
       console.error("Error fetching book types:", error)
-      toast.error("Failed to load book types")
+      toast.error(error.message)
     } finally {
       setBookTypesLoading(false)
     }
@@ -188,13 +191,15 @@ export default function BookFormPage() {
         },
       })
 
-      if (!response.ok) throw new Error("Failed to fetch book categories")
+      
 
       const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data?.message || 'Failed to fetch book categories')
+      }
       setBookCategories(data.bookCategories)
-    } catch (error) {
-      console.error("Error fetching book categories:", error)
-      toast.error("Failed to load book categories")
+    } catch (error:any) {
+      toast.error(error.message)
     } finally {
       setBookCategoriesLoading(false)
     }
