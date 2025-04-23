@@ -53,7 +53,11 @@ export default function CreateIssuePage() {
 
    const fetchShamelaDocuments = async () => {
      try {
-       const response = await fetch("https://lkp.pathok.com.bd/api/scraped-documents")
+       const response = await fetch("https://lkp.pathok.com.bd/api/scraped-documents",{
+         headers: {
+           Authorization: `Bearer ${token}`,
+         },
+       })
        const data = await response.json()
        setShamelaDocuments(data)
        console.log(data)
