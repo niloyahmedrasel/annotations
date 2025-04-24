@@ -9,6 +9,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "react-toastify"
+import { useRouter } from "next/navigation"
+
 
 const userFormSchema = z
   .object({
@@ -24,6 +26,7 @@ const userFormSchema = z
   })
 
 export default function UserForm({ params }: { params: { id: string } }) {
+  const router = useRouter()
   const isNewUser = params.id === "new"
   const [loading, setLoading] = useState(false)
   const [formKey, setFormKey] = useState(Date.now()) 
@@ -95,6 +98,7 @@ export default function UserForm({ params }: { params: { id: string } }) {
 
     if (response.ok) {
       toast.success(isNewUser ? "User created successfully!" : "User updated successfully!")
+      router.push("/dashboard/roles/users")
     } else {
       toast.error("Something went wrong. Please try again.")
     }

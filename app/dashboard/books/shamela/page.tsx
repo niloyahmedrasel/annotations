@@ -50,7 +50,13 @@ export default function ShamelaPage() {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const response = await fetch("https://lkp.pathok.com.bd/api/scraped-documents");
+        const user = sessionStorage.getItem("user")
+        const token = user ? JSON.parse(user).token : null
+        const response = await fetch("https://lkp.pathok.com.bd/api/scraped-documents",{
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         if (!response.ok) throw new Error("Failed to fetch history");
         const data = await response.json();
         console.log(data)
@@ -65,7 +71,6 @@ export default function ShamelaPage() {
 
   return (
     <div className="container mx-auto py-10 grid grid-cols-2 gap-8">
-      {/* Scraping Form */}
       <Card className="w-full max-w-2xl">
         <CardHeader>
           <CardTitle className="text-2xl">Scrap Book from Shamela</CardTitle>
@@ -76,13 +81,12 @@ export default function ShamelaPage() {
           <div>
             <Input
               type="text"
-              value="https://shamela.ws/book/{bookNumber}/{pageNumber}#p1" // This is the base URL and it is unchangeable
-              disabled // Makes the input field uneditable
+              value="https://shamela.ws/book/{bookNumber}/{pageNumber}#p1" 
+              disabled 
               className="w-full"
             />
           </div>
 
-          {/* Other Input Fields */}
           <div className="flex space-x-2">
             <Input
               type="text"
@@ -90,7 +94,7 @@ export default function ShamelaPage() {
               value={bookNumber}
               onChange={(e) => setBookNumber(e.target.value)}
               className="w-1/3"
-              defaultValue="19188" // Set default book number to 19188
+              defaultValue="19188" 
             />
             <Input
               type="number"
@@ -116,8 +120,6 @@ export default function ShamelaPage() {
           </Button>
         </CardFooter>
       </Card>
-
-      {/* Document History */}
       <Card className="w-full max-w-lg">
         <CardHeader>
           <CardTitle className="text-2xl">Document History</CardTitle>

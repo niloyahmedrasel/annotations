@@ -46,7 +46,7 @@ const navItems: NavItem[] = [
     title: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
-    roles: ["Super Admin", "Book Organizer", "Annotator"],
+    roles: ["Super Admin", "Doc Organizer", "Annotator", "Reviewer"],
   },
   {
     title: "Uses & Groups",
@@ -62,7 +62,7 @@ const navItems: NavItem[] = [
     title: "Library Management",
     href: "/dashboard/books",
     icon: BookOpen,
-    roles: ["Super Admin", "Book Organizer"],
+    roles: ["Super Admin", "Doc Organizer"],
     submenu: [
       { title: "All Books", href: "/dashboard/books" },
       {
@@ -81,7 +81,7 @@ const navItems: NavItem[] = [
     title: "Issue Management",
     href: "/dashboard/fatwas",
     icon: FileText,
-    roles: ["Super Admin", "Annotator"],
+    roles: ["Super Admin", "Doc Organizer"],
     submenu: [
       { title: "Issue Viewer", href: "/dashboard/fatwas" },
       { title: "Create Issue", href: "/dashboard/fatwas/new" },
