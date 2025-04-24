@@ -26,9 +26,11 @@ export default function ShamelaPage() {
     }
 
     try {
+      const user = sessionStorage.getItem("user")
+      const token = user ? JSON.parse(user).token : null
       const response = await fetch("https://lkp.pathok.com.bd/api/scrape", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify(requestData),
       })
       
