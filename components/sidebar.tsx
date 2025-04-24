@@ -62,29 +62,29 @@ const navItems: NavItem[] = [
     title: "Library Management",
     href: "/dashboard/books",
     icon: BookOpen,
-    roles: ["Super Admin", "Doc Organizer"],
+    roles: ["Super Admin", "Doc Organizer", "Annotator", "Reviewer"],
     submenu: [
       { title: "All Books", href: "/dashboard/books" },
       {
         title: "Create Book",
         href: "#",
-        roles: ["Super Admin"],
+        roles: ["Super Admin","Annotator"],
         submenu: [
-          { title: "Upload Doc", href: "/dashboard/books/new" },
-          { title: "Shamela Scraper", href: "/dashboard/books/shamela" },
-          { title: "Upload PDF", href: "/" },
+          { title: "Upload Doc", href: "/dashboard/books/new", roles: ["Super Admin"] },
+          { title: "Shamela Scraper", href: "/dashboard/books/shamela", roles: ["Super Admin","Annotator"] },
+          { title: "Upload PDF", href: "/", roles: ["Super Admin"] },
         ],
-      }
+      },
     ],
   },
   {
     title: "Issue Management",
     href: "/dashboard/fatwas",
     icon: FileText,
-    roles: ["Super Admin", "Doc Organizer"],
+    roles: ["Super Admin", "Doc Organizer","Reviewer"],
     submenu: [
-      { title: "Issue Viewer", href: "/dashboard/fatwas" },
-      { title: "Create Issue", href: "/dashboard/fatwas/new" },
+      { title: "Issue Viewer", href: "/dashboard/fatwas", roles:["Reviewer"]  },
+      { title: "Create Issue", href: "/dashboard/fatwas/new", roles: ["Super Admin"]},
     ],
   },
   {
@@ -92,9 +92,7 @@ const navItems: NavItem[] = [
     href: "/dashboard/annotations",
     icon: Tag,
     roles: ["Super Admin", "Annotator"],
-    submenu: [
-      { title: "All Annotations", href: "/dashboard/annotations" }
-    ],
+    submenu: [{ title: "All Annotations", href: "/dashboard/annotations" }],
   },
   {
     title: "Categories",
@@ -108,7 +106,7 @@ const navItems: NavItem[] = [
       { title: "Tags", href: "/dashboard/categories/tags" },
       { title: "Editors", href: "/dashboard/categories/editors" },
       { title: "Publishers", href: "/dashboard/categories/publishers" },
-      { title: "Authors", href: "/dashboard/categories/authors" }
+      { title: "Authors", href: "/dashboard/categories/authors" },
     ],
   },
   {
@@ -204,23 +202,29 @@ export function Sidebar({ onCollapse }: SidebarProps) {
     router.push("/login")
   }
 
+  const userHasAccess = (roles?: string[]) => {
+    if (!roles || roles.length === 0) return true
+    return roles.includes(user?.role || "")
+  }
+
   const filteredNavItems = navItems.filter((item) => {
-    if (item.roles.includes(user?.role || "")) {
+    if (userHasAccess(item.roles)) {
       if (item.submenu) {
         const filteredSubmenu = item.submenu
-          .filter((subitem) => !subitem.roles || subitem.roles.includes(user?.role || ""))
+          .filter((subitem) => userHasAccess(subitem.roles))
           .map((subitem) => {
             if (subitem.submenu) {
               return {
                 ...subitem,
-                submenu: subitem.submenu.filter(
-                  (nestedItem) => !nestedItem.roles || nestedItem.roles.includes(user?.role || ""),
-                ),
+                submenu: subitem.submenu.filter((nestedItem) => userHasAccess(nestedItem.roles)),
               }
             }
             return subitem
           })
-
+          .filter(
+            (subitem) =>
+              !subitem.submenu || subitem.submenu.length > 0,
+          )
         return filteredSubmenu.length > 0
       }
       return true
@@ -292,64 +296,68 @@ export function Sidebar({ onCollapse }: SidebarProps) {
                   </Link>
                 )}
               </Button>
-              
+
               {!isCollapsed && item.submenu && openSubmenus[item.title] && (
                 <div className="mt-1 space-y-1 px-4">
-                  {item.submenu.map((subitem) => (
-                    <div key={subitem.title}>
-                      {subitem.submenu ? (
-                        <div>
-                          <div
-                            className={cn(
-                              "flex items-center justify-between rounded-md py-2 pl-4 text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white cursor-pointer",
-                              subitem.submenu.some((nestedItem) => pathname === nestedItem.href) &&
-                                "bg-gray-800 text-white",
-                            )}
-                            onClick={(e) => {
-                              e.preventDefault()
-                              e.stopPropagation()
-                              toggleNestedSubmenu(e, subitem.title)
-                            }}
-                          >
-                            <span>{subitem.title}</span>
-                            <ChevronDown
+                  {item.submenu
+                    .filter((subitem) => userHasAccess(subitem.roles))
+                    .map((subitem) => (
+                      <div key={subitem.title}>
+                        {subitem.submenu ? (
+                          <div>
+                            <div
                               className={cn(
-                                "h-4 w-4 transition-transform",
-                                openNestedSubmenus[subitem.title] && "rotate-180",
+                                "flex items-center justify-between rounded-md py-2 pl-4 text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white cursor-pointer",
+                                subitem.submenu.some((nestedItem) => pathname === nestedItem.href) &&
+                                  "bg-gray-800 text-white",
                               )}
-                            />
-                          </div>
-                          {openNestedSubmenus[subitem.title] && (
-                            <div className="ml-4 mt-1 space-y-1">
-                              {subitem.submenu.map((nestedItem) => (
-                                <Link
-                                  key={nestedItem.href}
-                                  href={nestedItem.href}
-                                  className={cn(
-                                    "block rounded-md py-2 pl-4 text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white",
-                                    pathname === nestedItem.href && "bg-gray-800 text-white",
-                                  )}
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  {nestedItem.title}
-                                </Link>
-                              ))}
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                toggleNestedSubmenu(e, subitem.title)
+                              }}
+                            >
+                              <span>{subitem.title}</span>
+                              <ChevronDown
+                                className={cn(
+                                  "h-4 w-4 transition-transform",
+                                  openNestedSubmenus[subitem.title] && "rotate-180",
+                                )}
+                              />
                             </div>
-                          )}
-                        </div>
-                      ) : (
-                        <Link
-                          href={subitem.href}
-                          className={cn(
-                            "block rounded-md py-2 pl-4 text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white",
-                            pathname === subitem.href && "bg-gray-800 text-white",
-                          )}
-                        >
-                          {subitem.title}
-                        </Link>
-                      )}
-                    </div>
-                  ))}
+                            {openNestedSubmenus[subitem.title] && (
+                              <div className="ml-4 mt-1 space-y-1">
+                                {subitem.submenu
+                                  .filter((nestedItem) => userHasAccess(nestedItem.roles))
+                                  .map((nestedItem) => (
+                                    <Link
+                                      key={nestedItem.href}
+                                      href={nestedItem.href}
+                                      className={cn(
+                                        "block rounded-md py-2 pl-4 text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white",
+                                        pathname === nestedItem.href && "bg-gray-800 text-white",
+                                      )}
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      {nestedItem.title}
+                                    </Link>
+                                  ))}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <Link
+                            href={subitem.href}
+                            className={cn(
+                              "block rounded-md py-2 pl-4 text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white",
+                              pathname === subitem.href && "bg-gray-800 text-white",
+                            )}
+                          >
+                            {subitem.title}
+                          </Link>
+                        )}
+                      </div>
+                    ))}
                 </div>
               )}
             </div>
@@ -368,4 +376,3 @@ export function Sidebar({ onCollapse }: SidebarProps) {
     </div>
   )
 }
-

@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 
-type Role = "Super Admin" | "Book Organizer" | "Annotator" | "Reviewer"
+type Role = "Super Admin" | "Doc Organizer" | "Annotator" | "Reviewer"
 
 interface User {
   id: string

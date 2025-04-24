@@ -22,6 +22,7 @@ interface User {
   name: string
   email: string
   role: string
+  isfreeze?: boolean
 }
 
 type SortKey = "name" | "email" | "role"
@@ -56,6 +57,10 @@ export default function UsersPage() {
         const data = await response.json()
         console.log("this is user", data)
         setUsers(data.users)
+
+        // Initialize frozenUsers based on user data
+        const initialFrozenUsers = data.users.filter((user:User) => user.isfreeze === true).map((user:User) => user._id)
+        setFrozenUsers(initialFrozenUsers)
       } catch (err) {
         setError((err as any).message)
       } finally {
@@ -126,12 +131,41 @@ export default function UsersPage() {
     }
   }
 
-  const toggleFreeze = (userId: string) => {
-    setFrozenUsers((prev) => {
-      const newFrozenUsers = prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
-      console.log("Frozen Users List:", newFrozenUsers)
-      return newFrozenUsers
-    })
+  const toggleFreeze = async (userId: string) => {
+    const user = sessionStorage.getItem("user")
+    const token = user ? JSON.parse(user).token : null
+
+    if (!token) {
+      setError("No authentication token found.")
+      return
+    }
+
+    try {
+      const isFrozen = frozenUsers.includes(userId)
+      const endpoint = isFrozen
+        ? `https://lkp.pathok.com.bd/api/user/unfreeze-user/${userId}`
+        : `https://lkp.pathok.com.bd/api/user/freeze-user/${userId}`
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      if (!response.ok) throw new Error(isFrozen ? "Failed to unfreeze user" : "Failed to freeze user")
+
+      // Update frozenUsers state
+      setFrozenUsers((prev) => {
+        return isFrozen ? prev.filter((id) => id !== userId) : [...prev, userId]
+      })
+
+      // Update the freeze property in the users state
+      setUsers((prevUsers) => prevUsers.map((user) => (user._id === userId ? { ...user, freeze: !isFrozen } : user)))
+
+      toast.success(isFrozen ? "User unfrozen successfully" : "User frozen successfully")
+    } catch (err) {
+      setError((err as any).message)
+      toast.error((err as any).message)
+    }
   }
 
   if (loading) return <p>Loading users...</p>
@@ -181,7 +215,7 @@ export default function UsersPage() {
         </TableHeader>
         <TableBody>
           {filteredAndSortedUsers.map((user) => (
-            <TableRow key={user._id} className={frozenUsers.includes(user._id) ? "opacity-50" : ""}>
+            <TableRow key={user._id} className={user.isfreeze ? "opacity-50" : ""}>
               <TableCell className="font-medium">{user.name}</TableCell>
               <TableCell>{user.email}</TableCell>
               <TableCell>
@@ -195,7 +229,7 @@ export default function UsersPage() {
                   Delete
                 </Button>
                 <Button variant="ghost" size="sm" onClick={() => toggleFreeze(user._id)}>
-                  {frozenUsers.includes(user._id) ? "Unfreeze" : "Freeze"}
+                  {user.isfreeze ? "Unfreeze" : "Freeze"}
                 </Button>
               </TableCell>
             </TableRow>
