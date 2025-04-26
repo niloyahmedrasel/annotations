@@ -34,13 +34,14 @@ export default function AuthorsPage() {
           Authorization: `Bearer ${token}`,
         },
       })
+      const data = await response.json()
       if (!response.ok) {
         throw new Error("Failed to fetch authors")
       }
-      const data = await response.json()
+      
       setAuthors(data.authors)
-    } catch (error) {
-      toast.error("Failed to load authors")
+    } catch (error:any) {
+      toast.error(error.message)
       console.error(error)
     } finally {
       setIsLoading(false)
@@ -64,15 +65,17 @@ export default function AuthorsPage() {
         body: JSON.stringify(newAuthor),
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        throw new Error("Failed to add author")
+        throw new Error(data.message)
       }
 
       fetchAuthors()
       toast.success("Author added successfully")
       setNewAuthor({ title: "" })
-    } catch (error) {
-      toast.error("Failed to add author")
+    } catch (error:any) {
+      toast.error(error.message)
       console.error(error)
     } finally {
       setIsLoading(false)
@@ -89,14 +92,16 @@ export default function AuthorsPage() {
         },
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        throw new Error("Failed to delete author")
+        throw new Error(data.message)
       }
 
       setAuthors(authors.filter((author) => author._id !== id))
       toast.success("Author deleted successfully")
-    } catch (error) {
-      toast.error("Failed to delete author")
+    } catch (error:any) {
+      toast.error(error.message)
       console.error(error)
     } finally {
       setIsLoading(false)

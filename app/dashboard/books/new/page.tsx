@@ -91,10 +91,10 @@ export default function BookFormPage() {
           Authorization: `Bearer ${token}`,
         },
       })
-
-      if (!response.ok) throw new Error("Failed to fetch authors")
-
       const data = await response.json()
+      if (!response.ok) throw new Error(data.message)
+
+      
       setAuthors(data.authors)
     } catch (error: any) {
       console.error("Error fetching authors:", error.message)
@@ -115,14 +115,14 @@ export default function BookFormPage() {
           Authorization: `Bearer ${token}`,
         },
       })
-
-      if (!response.ok) throw new Error("Failed to fetch editors")
-
       const data = await response.json()
+      if (!response.ok) throw new Error(data.message)
+
+      
       setEditors(data.editors)
-    } catch (error) {
+    } catch (error:any) {
       console.error("Error fetching editors:", error)
-      toast.error("Failed to load editors")
+      toast.error(error.message)
     } finally {
       setEditorsLoading(false)
     }
@@ -139,14 +139,14 @@ export default function BookFormPage() {
           Authorization: `Bearer ${token}`,
         },
       })
-
-      if (!response.ok) throw new Error("Failed to fetch publishers")
-
       const data = await response.json()
+      if (!response.ok) throw new Error(data.message)
+
+      
       setPublishers(data.publishers)
-    } catch (error) {
+    } catch (error:any) {
       console.error("Error fetching publishers:", error)
-      toast.error("Failed to load publishers")
+      toast.error(error.message)
     } finally {
       setPublishersLoading(false)
     }
@@ -232,10 +232,10 @@ export default function BookFormPage() {
               Authorization: `Bearer ${token}`,
             },
           })
-
-          if (!response.ok) throw new Error("Failed to fetch book data")
-
           const data = await response.json()
+
+          if (!response.ok) throw new Error(data.message)
+
           setBookData(data.book)
 
           form.reset({
@@ -246,9 +246,9 @@ export default function BookFormPage() {
             type: data.book.type || "",
             category: data.book.category || "",
           })
-        } catch (error) {
+        } catch (error:any) {
           console.error("Error fetching book:", error)
-          toast.error("Failed to load book details")
+          toast.error(error.message)
         } finally {
           setIsLoading(false)
         }
@@ -302,12 +302,12 @@ export default function BookFormPage() {
           body: formData,
         })
       }
-
+      const result = await response.json()
       if (!response.ok) {
         throw new Error(`Failed to ${isEditMode ? "update" : "create"} book`)
       }
 
-      const result = await response.json()
+      
       console.log("Success:", result)
       form.reset()
 

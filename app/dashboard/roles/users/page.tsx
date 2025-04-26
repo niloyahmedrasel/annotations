@@ -151,14 +151,14 @@ export default function UsersPage() {
         headers: { Authorization: `Bearer ${token}` },
       })
 
-      if (!response.ok) throw new Error(isFrozen ? "Failed to unfreeze user" : "Failed to freeze user")
+      const data = await response.json()
 
-      // Update frozenUsers state
+      if (!response.ok) throw new Error(isFrozen ? data.message : data.message)
+
       setFrozenUsers((prev) => {
         return isFrozen ? prev.filter((id) => id !== userId) : [...prev, userId]
       })
 
-      // Update the freeze property in the users state
       setUsers((prevUsers) => prevUsers.map((user) => (user._id === userId ? { ...user, freeze: !isFrozen } : user)))
 
       toast.success(isFrozen ? "User unfrozen successfully" : "User frozen successfully")

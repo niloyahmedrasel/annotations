@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { BookOpen, Search } from "lucide-react"
+import { toast } from "react-toastify"
 
 interface Document {
   title: string;
@@ -33,11 +34,12 @@ export default function ShamelaPage() {
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify(requestData),
       })
-      
-      if (!response.ok) throw new Error("Failed to scrape")
       const data = await response.json()
-    } catch (error) {
+      if (!response.ok) throw new Error(data.message)
+      
+    } catch (error:any) {
       console.error("Error scraping:", error)
+      toast.error(error.message)
     }
     setLoading(false)
   }
@@ -57,12 +59,14 @@ export default function ShamelaPage() {
             Authorization: `Bearer ${token}`,
           },
         });
-        if (!response.ok) throw new Error("Failed to fetch history");
         const data = await response.json();
+        if (!response.ok) throw new Error(data.message);
+       
         console.log(data)
         setData(data);
-      } catch (error) {
+      } catch (error:any) {
         console.error("Error fetching history:", error);
+        toast.error(error.message);
       }
     };
 

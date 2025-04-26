@@ -67,13 +67,13 @@ export default function BookDetailsPage({ params }: { params: { id: string } }) 
           },
         })
 
-        if (!response.ok) throw new Error("Failed to fetch book data")
-
         const data = await response.json()
+        if (!response.ok) throw new Error(data.message)
         setBook(data.book)
-      } catch (error) {
+
+      } catch (error:any) {
         console.error("Error fetching book:", error)
-        toast.error("Failed to load book details")
+        toast.error(error.message)
       } finally {
         setIsLoading(false)
       }
@@ -118,16 +118,18 @@ export default function BookDetailsPage({ params }: { params: { id: string } }) 
         },
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        throw new Error("Failed to delete book")
+        throw new Error(data.message)
       }
 
       setIsDeleteDialogOpen(false)
       toast.success("Book deleted successfully")
       router.push("/dashboard/books")
-    } catch (error) {
+    } catch (error:any) {
       console.error("Error deleting book:", error)
-      toast.error("Failed to delete book")
+      toast.error(error.message)
     } finally {
       setIsDeleting(false)
     }

@@ -52,11 +52,11 @@ export default function BooksPage() {
           headers: { Authorization: `Bearer ${token}` },
         })
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch books")
-        }
-
         const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.message)
+        }
         console.log(data)
 
         const formattedBooks = data.books.map((book: any) => ({

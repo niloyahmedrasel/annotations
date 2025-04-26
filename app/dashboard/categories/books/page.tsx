@@ -34,14 +34,15 @@ export default function BookCategoriesPage() {
           Authorization: `Bearer ${token}`,
         },
       })
-      if (!response.ok) {
-        throw new Error("Failed to fetch book categories")
-      }
       const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.message)
+      }
+      
       setBookCategories(data.bookCategories)
-    } catch (error) {
+    } catch (error:any) {
       toast.error("Failed to load book categories")
-      console.error(error)
+      console.error(error.message)
     } finally {
       setIsLoading(false)
     }
@@ -63,16 +64,17 @@ export default function BookCategoriesPage() {
         },
         body: JSON.stringify(newBookCategory),
       })
+      const data = await response.json()
 
       if (!response.ok) {
-        throw new Error("Failed to add book category")
+        throw new Error(data.message)
       }
 
       fetchBookCategories()
       toast.success("Book category added successfully")
       setNewBookCategory({ title: "" })
-    } catch (error) {
-      toast.error("Failed to add book category")
+    } catch (error:any) {
+      toast.error(error.message)
       console.error(error)
     } finally {
       setIsLoading(false)
@@ -88,15 +90,16 @@ export default function BookCategoriesPage() {
           Authorization: `Bearer ${token}`,
         },
       })
+      const data = await response.json()
 
       if (!response.ok) {
-        throw new Error("Failed to delete book category")
+        throw new Error(data.message)
       }
 
       setBookCategories(bookCategories.filter((category) => category._id !== id))
       toast.success("Book category deleted successfully")
-    } catch (error) {
-      toast.error("Failed to delete book category")
+    } catch (error:any) {
+      toast.error(error.message)
       console.error(error)
     } finally {
       setIsLoading(false)

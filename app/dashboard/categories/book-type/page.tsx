@@ -34,13 +34,14 @@ export default function BookTypesPage() {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!response.ok) {
-        throw new Error("Failed to fetch book types");
-      }
       const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message);
+      }
+      
       setBookTypes(data.bookTypes);
-    } catch (error) {
-      toast.error("Failed to load book types");
+    } catch (error:any) {
+      toast.error(error.message);
       console.error(error);
     } finally {
       setIsLoading(false);
@@ -64,15 +65,17 @@ export default function BookTypesPage() {
         body: JSON.stringify(newBookType),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error("Failed to add book type");
+        throw new Error(data.message);
       }
 
       fetchBookTypes();
       toast.success("Book type added successfully");
       setNewBookType({ title: "" });
-    } catch (error) {
-      toast.error("Failed to add book type");
+    } catch (error:any) {
+      toast.error(error.message);
       console.error(error);
     } finally {
       setIsLoading(false);
@@ -89,14 +92,16 @@ export default function BookTypesPage() {
         },
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error("Failed to delete book type");
+        throw new Error(data.message);
       }
 
       setBookTypes(bookTypes.filter((type) => type._id !== id));
       toast.success("Book type deleted successfully");
-    } catch (error) {
-      toast.error("Failed to delete book type");
+    } catch (error:any) {
+      toast.error(error.message);
       console.error(error);
     } finally {
       setIsLoading(false);
