@@ -304,7 +304,7 @@ export default function BookFormPage() {
       }
       const result = await response.json()
       if (!response.ok) {
-        throw new Error(`Failed to ${isEditMode ? "update" : "create"} book`)
+        throw new Error(result.message)
       }
 
       
@@ -313,9 +313,9 @@ export default function BookFormPage() {
 
       router.push("/dashboard/books")
       toast.success(`Book ${isEditMode ? "updated" : "created"} successfully!`)
-    } catch (error) {
+    } catch (error:any) {
       console.error("Error:", error)
-      toast.error(`Failed to ${isEditMode ? "update" : "create"} book`)
+      toast.error(error.message)
     }
   }
 

@@ -58,7 +58,6 @@ export default function UsersPage() {
         console.log("this is user", data)
         setUsers(data.users)
 
-        // Initialize frozenUsers based on user data
         const initialFrozenUsers = data.users.filter((user:User) => user.isfreeze === true).map((user:User) => user._id)
         setFrozenUsers(initialFrozenUsers)
       } catch (err) {
