@@ -83,7 +83,7 @@ const navItems: NavItem[] = [
     icon: FileText,
     roles: ["Super Admin", "Doc Organizer","Reviewer"],
     submenu: [
-      { title: "Issue Viewer", href: "/dashboard/fatwas", roles:["Reviewer,Super Admin"]  },
+      { title: "Issue Viewer", href: "/dashboard/fatwas", roles:["Reviewer","Super Admin"]  },
       { title: "Create Issue", href: "/dashboard/fatwas/new", roles: ["Super Admin"]},
     ],
   },
