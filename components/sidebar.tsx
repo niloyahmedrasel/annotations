@@ -70,9 +70,7 @@ const navItems: NavItem[] = [
         href: "#",
         roles: ["Super Admin","Annotator"],
         submenu: [
-          { title: "Upload Doc", href: "/dashboard/books/new", roles: ["Super Admin"] },
-          { title: "Shamela Scraper", href: "/dashboard/books/shamela", roles: ["Super Admin","Annotator"] },
-          { title: "Upload PDF", href: "/", roles: ["Super Admin"] },
+          { title: "Shamela Scraper", href: "/dashboard/books/shamela", roles: ["Super Admin","Annotator"] }
         ],
       },
     ],
