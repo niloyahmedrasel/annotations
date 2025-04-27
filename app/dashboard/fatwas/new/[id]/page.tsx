@@ -27,6 +27,11 @@ interface Tag {
   title: string
 }
 
+const isArabicText = (text: string): boolean => {
+  const arabicPattern = /[\u0600-\u06FF]/
+  return arabicPattern.test(text)
+}
+
 const ContextMenu = ({
   position,
   onClose,
@@ -58,7 +63,6 @@ const ContextMenu = ({
     wordNumber: documentData.wordNumber || "N/A",
   }
 
-  
   useEffect(() => {
     const fetchTags = async () => {
       try {
@@ -83,7 +87,7 @@ const ContextMenu = ({
 
         const data = await response.json()
         const newData = data.tags
-        
+
         if (newData && newData.length > 0) {
           const tagTitles = newData.map((tag: Tag) => tag.title)
           setTags(tagTitles)
@@ -351,11 +355,12 @@ export default function NewFatwaPage() {
 
   const highlightRange = (range: Range, selection: TextSelection) => {
     const highlightElements: HTMLElement[] = []
-
     const fragment = range.cloneContents()
-
     const tempContainer = document.createElement("div")
     tempContainer.appendChild(fragment)
+
+    const selectedText = selection.text
+    const isArabic = isArabicText(selectedText)
 
     const highlightSpan = document.createElement("span")
     highlightSpan.className = "highlighted-text"
@@ -364,6 +369,8 @@ export default function NewFatwaPage() {
     highlightSpan.style.boxShadow = "0 0 2px rgba(255, 255, 0, 0.8)"
     highlightSpan.style.borderRadius = "2px"
     highlightSpan.style.padding = "0 2px"
+    highlightSpan.style.direction = isArabic ? "rtl" : "ltr"
+    highlightSpan.style.textAlign = isArabic ? "right" : "left"
 
     highlightSpan.innerHTML = tempContainer.innerHTML
     range.deleteContents()
@@ -511,7 +518,15 @@ export default function NewFatwaPage() {
             <div className="space-y-3">
               {selections.map((selection, index) => (
                 <div key={selection.id} className="bg-gray-700 rounded-md p-3 relative">
-                  <p className="text-sm pr-8">"{selection.text}"</p>
+                  <p
+                    className="text-sm pr-8"
+                    style={{
+                      direction: isArabicText(selection.text) ? "rtl" : "ltr",
+                      textAlign: isArabicText(selection.text) ? "right" : "left",
+                    }}
+                  >
+                    "{selection.text}"
+                  </p>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -575,6 +590,8 @@ export default function NewFatwaPage() {
                 wordWrap: "break-word",
                 lineHeight: "1.6",
                 color: "#000000",
+                direction: isArabicText(content) ? "rtl" : "ltr",
+                textAlign: isArabicText(content) ? "right" : "left",
               }}
             />
           </div>
