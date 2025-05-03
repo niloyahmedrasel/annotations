@@ -397,6 +397,7 @@ export default function NewFatwaPage() {
       const combinedText = selections.map((s) => s.text).join(" ")
 
       const user = sessionStorage.getItem("user")
+      const userName = user ? JSON.parse(user).name : null
       const token = user ? JSON.parse(user).token : null
 
       if (!token) {
@@ -413,6 +414,7 @@ export default function NewFatwaPage() {
         chapter: formData.bookInfo.chapter,
         tags: formData.tags,
         issue: combinedText,
+        createdBy:userName,
       }
 
       const response = await fetch("https://lkp.pathok.com.bd/api/issue", {

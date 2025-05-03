@@ -26,6 +26,7 @@ import { toast } from "react-toastify"
 interface Issue {
   _id: string
   title: string
+  createdBy: string
   bookNumber: string
   pageNumber: string
   volume: string
@@ -385,6 +386,7 @@ export default function FatwasPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Title</TableHead>
+              <TableHead>Creator</TableHead>
               <TableHead>Book Number</TableHead>
               <TableHead>Page</TableHead>
               <TableHead>Volume</TableHead>
@@ -399,6 +401,7 @@ export default function FatwasPage() {
               filteredIssues.map((issue) => (
                 <TableRow key={issue._id}>
                   <TableCell className="font-medium">{issue.title}</TableCell>
+                  <TableCell>{issue.createdBy}</TableCell>
                   <TableCell>{issue.bookNumber}</TableCell>
                   <TableCell>{issue.pageNumber}</TableCell>
                   <TableCell>{issue.volume}</TableCell>
