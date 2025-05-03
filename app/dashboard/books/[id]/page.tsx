@@ -248,8 +248,12 @@ export default function BookDetailsPage({ params }: { params: { id: string } }) 
               Open Doc
             </Button>
 
-            <Button className="w-full" variant="secondary" asChild>
+            <Button className="w-full text-black" variant="secondary" asChild>
               <Link href={`/dashboard/fatwas/new/${book._id}`}>Create Issue</Link>
+            </Button>
+
+            <Button className="w-full" variant="default" asChild>
+              <Link href={"/dashboard/annotations"}>Annotate</Link>
             </Button>
 
             <Button variant="destructive" className="w-full" onClick={() => setIsDeleteDialogOpen(true)}>

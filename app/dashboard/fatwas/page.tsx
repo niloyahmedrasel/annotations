@@ -199,7 +199,9 @@ export default function FatwasPage() {
   const filteredIssues = issues.filter((issue) => {
     const matchesSearch =
       issue.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      issue.issue.toLowerCase().includes(searchTerm.toLowerCase())
+      issue.issue.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      issue.createdBy?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      issue.bookNumber?.toLowerCase().includes(searchTerm.toLowerCase())
 
     const matchesStatus = selectedStatus === "All Statuses" || issue.status === selectedStatus
 
