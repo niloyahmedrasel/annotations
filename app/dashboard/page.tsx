@@ -5,6 +5,7 @@ import { BookOpen, FileText, Users, Activity } from "lucide-react"
 import { RecentActivities } from "@/components/recent-activities"
 import { useDebugValue, useEffect, useState } from "react";
 import Link from "next/link";
+import { count } from "console";
 
 interface BookCount {
   count: number;
@@ -12,6 +13,7 @@ interface BookCount {
 export default function DashboardPage() {
 
   const [countBook, setCountBook] = useState<BookCount>({ count: 0 });
+  const [countIssue, setCountIssue] = useState<BookCount>({ count: 0 });
 
   useEffect(() => {
     const user = JSON.parse(sessionStorage.getItem('user') || '{}');
@@ -31,6 +33,22 @@ export default function DashboardPage() {
       .catch(error => {
         console.error('Error fetching book data:', error);
       });
+
+      fetch('https://lkp.pathok.com.bd/api/issue/count/count-issues', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      })
+        .then(response => response.json())
+        .then(data => {
+          setCountIssue(data);
+          console.log(data);
+        })
+        .catch(error => {
+          console.error('Error fetching book data:', error);
+        });
   },[])
   return (
     <div className="space-y-6">
@@ -58,12 +76,12 @@ export default function DashboardPage() {
         </Card>
         <Card>
          <Link href="/dashboard/fatwas"><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Issues</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Fatwas</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
            </CardHeader>
           </Link>
           <CardContent>
-            <div className="text-2xl font-bold">-</div>
+            <div className="text-2xl font-bold">{countIssue.count}</div>
           </CardContent>
         </Card>
         <Card>
