@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { PlusCircle, Trash2, Search } from "lucide-react"
 import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
+import { useTranslation } from "react-i18next"
 
 interface Tag {
   _id: string
@@ -18,6 +19,9 @@ export default function TagsPage() {
   const [newTag, setNewTag] = useState({ title: "" })
   const [searchQuery, setSearchQuery] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+
+  const {t, i18n} = useTranslation()
+  const isRTL = i18n.language === "ar"
  
   const user = sessionStorage.getItem("user")
   const token = user ? JSON.parse(user).token : null
@@ -40,7 +44,7 @@ export default function TagsPage() {
       const data = await response.json()
       setTags(data.tags)
     } catch (error) {
-      toast.error("Failed to load tags")
+      toast.error(t("Failed to load tags"))
       console.error(error)
     } finally {
       setIsLoading(false)
@@ -49,7 +53,7 @@ export default function TagsPage() {
 
   const addTag = async () => {
     if (newTag.title.trim() === "") {
-      toast.warning("Tag title cannot be empty")
+      toast.warning(t("Tag title cannot be empty"))
       return
     }
 
@@ -69,7 +73,7 @@ export default function TagsPage() {
       }
 
       fetchTags()
-      toast.success("Tag added successfully")
+      toast.success(t("Tag added successfully"))
       setNewTag({ title: "" })
     } catch (error) {
       toast.error("Failed to add tag")
@@ -94,9 +98,9 @@ export default function TagsPage() {
       }
 
       setTags(tags.filter((tag) => tag._id !== id))
-      toast.success("Tag deleted successfully")
+      toast.success(t("Tag deleted successfully"))
     } catch (error) {
-      toast.error("Failed to delete tag")
+      toast.error(t("Failed to delete tag"))
       console.error(error)
     } finally {
       setIsLoading(false)
@@ -112,12 +116,12 @@ export default function TagsPage() {
     <div className="space-y-6 p-6">
       <ToastContainer position="top-right" autoClose={3000} />
 
-      <h1 className="text-3xl font-bold">Tags</h1>
+      <h1 className="text-3xl font-bold">{t("Tags")}</h1>
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Search tags..."
+          placeholder={t("Search tags...")}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-10"
@@ -126,24 +130,24 @@ export default function TagsPage() {
 
       <div className="flex space-x-4">
         <Input
-          placeholder="Tag title"
+          placeholder={t("Tag title")}
           value={newTag.title}
           onChange={(e) => setNewTag({ title: e.target.value })}
         />
         <Button onClick={addTag} disabled={isLoading}>
           <PlusCircle className="mr-2 h-4 w-4" />
-          Add Tag
+          {t("Add Tag")}
         </Button>
       </div>
 
       {isLoading ? (
-        <div className="text-center py-8">Loading tags...</div>
+        <div className="text-center py-8">{t("Loading tags...")}</div>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Title</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className={isRTL? "text-right" : "text-left"}>{t("Title")}</TableHead>
+              <TableHead className="text-right">{t("Actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -160,7 +164,7 @@ export default function TagsPage() {
                   <TableCell className="text-right">
                     <Button variant="ghost" size="sm" onClick={() => deleteTag(tag._id)} disabled={isLoading}>
                       <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
+                      {t("Delete")}
                     </Button>
                   </TableCell>
                 </TableRow>

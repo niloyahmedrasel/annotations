@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Plus, ChevronRight, ChevronDown } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "react-toastify"
+import { useTranslation } from "react-i18next"
 
 interface Action {
   id: string
@@ -41,6 +42,9 @@ const RolePermissions = () => {
   const [expandedCategories, setExpandedCategories] = useState<string[]>([])
   const [groupName, setGroupName] = useState("")
   const [isLoading, setIsLoading] = useState(true)
+
+  const { t, i18n } = useTranslation()
+  const isRTL = i18n.language === "ar"
 
   const handlePermissionChange = async (actionId: string, roleDisplayName: string) => {
     try {
@@ -172,7 +176,7 @@ const RolePermissions = () => {
         setPermissionState(newPermissionState)
       } catch (error) {
         console.error("Error fetching user permissions:", error)
-        toast.error("Failed to load user permissions")
+        toast.error(t("Failed to load user permissions"))
       }
     }
 
@@ -210,10 +214,10 @@ const RolePermissions = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[200px]">Category</TableHead>
-              <TableHead className="w-[300px]">Action</TableHead>
+              <TableHead className={isRTL?"w-[200px] text-right":"w-[200px]"}>{t("Category")}</TableHead>
+              <TableHead className={isRTL?"w-[200px] text-right":"w-[200px]"}>{t("Action")}</TableHead>
               {roles.map((role) => (
-                <TableHead key={role}>{role}</TableHead>
+                <TableHead className={isRTL?"w-[200px] text-right":"w-[200px]"} key={role}>{t(role)}</TableHead>
               ))}
             </TableRow>
           </TableHeader>
@@ -237,7 +241,7 @@ const RolePermissions = () => {
                       ) : (
                         <ChevronRight className="inline mr-2" />
                       )}
-                      {category.name}
+                      {t(category.name)}
                     </TableCell>
                   </TableRow>
                   {expandedCategories.includes(category.name) &&

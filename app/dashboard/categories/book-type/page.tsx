@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { PlusCircle, Trash2, Search } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useTranslation } from "react-i18next";
 
 interface BookType {
   _id: string;
@@ -18,6 +19,9 @@ export default function BookTypesPage() {
   const [newBookType, setNewBookType] = useState({ title: "" });
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const {t, i18n} = useTranslation()
+  const isRTL = i18n.language === "ar"
 
   const user = sessionStorage.getItem("user");
   const token = user ? JSON.parse(user).token : null;
@@ -50,7 +54,7 @@ export default function BookTypesPage() {
 
   const addBookType = async () => {
     if (newBookType.title.trim() === "") {
-      toast.warning("Book type title cannot be empty");
+      toast.warning(t("Book type title cannot be empty"));
       return;
     }
 
@@ -72,7 +76,7 @@ export default function BookTypesPage() {
       }
 
       fetchBookTypes();
-      toast.success("Book type added successfully");
+      toast.success(t("Book type added successfully"));
       setNewBookType({ title: "" });
     } catch (error:any) {
       toast.error(error.message);
@@ -99,7 +103,7 @@ export default function BookTypesPage() {
       }
 
       setBookTypes(bookTypes.filter((type) => type._id !== id));
-      toast.success("Book type deleted successfully");
+      toast.success(t("Book type deleted successfully"));
     } catch (error:any) {
       toast.error(error.message);
       console.error(error);
@@ -117,12 +121,12 @@ export default function BookTypesPage() {
     <div className="space-y-6 p-6">
       <ToastContainer position="top-right" autoClose={3000} />
 
-      <h1 className="text-3xl font-bold">Book Types</h1>
+      <h1 className="text-3xl font-bold">{t("Book Types")}</h1>
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Search book types..."
+          placeholder={t("Search book types...")}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-10"
@@ -131,24 +135,24 @@ export default function BookTypesPage() {
 
       <div className="flex space-x-4">
         <Input
-          placeholder="Book type title"
+          placeholder={t("Book type title")}
           value={newBookType.title}
           onChange={(e) => setNewBookType({ title: e.target.value })}
         />
         <Button onClick={addBookType} disabled={isLoading}>
           <PlusCircle className="mr-2 h-4 w-4" />
-          Add Type
+          {t("Add Type")}
         </Button>
       </div>
 
       {isLoading ? (
-        <div className="text-center py-8">Loading book types...</div>
+        <div className="text-center py-8">{t("Loading book types...")}</div>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Title</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className={isRTL ? "text-right" : "text-left"}>{t("Title")}</TableHead>
+              <TableHead className="text-right">{t("Actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -165,7 +169,7 @@ export default function BookTypesPage() {
                   <TableCell className="text-right">
                     <Button variant="ghost" size="sm" onClick={() => deleteBookType(type._id)} disabled={isLoading}>
                       <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
+                      {t("Delete")}
                     </Button>
                   </TableCell>
                 </TableRow>

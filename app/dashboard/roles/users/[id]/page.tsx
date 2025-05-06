@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "react-toastify"
 import { useRouter } from "next/navigation"
+import { useTranslation } from "react-i18next"
 
 
 const userFormSchema = z
@@ -41,6 +42,9 @@ export default function UserForm({ params }: { params: { id: string } }) {
       role: "",
     },
   })
+
+  const {t, i18n} = useTranslation()
+  const isRTL = i18n.language === "ar"
 
   
   useEffect(() => {
@@ -97,18 +101,18 @@ export default function UserForm({ params }: { params: { id: string } }) {
     })
 
     if (response.ok) {
-      toast.success(isNewUser ? "User created successfully!" : "User updated successfully!")
+      toast.success(isNewUser ? t("User added successfully!"): t("User updated successfully!"))
       router.push("/dashboard/roles/users")
     } else {
-      toast.error("Something went wrong. Please try again.")
+      toast.error(t("Something went wrong. Please try again."))
     }
   }
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">{isNewUser ? "Add New User" : "Edit User"}</h1>
+      <h1 className="text-3xl font-bold">{isNewUser ? t("Add New User") : t("Edit User")}</h1>
       {loading ? (
-        <p>Loading user data...</p>
+        <p>{t("Loading user data...")}</p>
       ) : (
         <Form {...form} key={formKey}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8" autoComplete="off">
@@ -117,9 +121,9 @@ export default function UserForm({ params }: { params: { id: string } }) {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>{t("Name")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter user's name" {...field} autoComplete="off" />
+                    <Input placeholder={t("Enter user's name")} {...field} autoComplete="off" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -130,9 +134,9 @@ export default function UserForm({ params }: { params: { id: string } }) {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>{t("Email")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter user's email" {...field} autoComplete="off" />
+                    <Input placeholder={t("Enter user's email")} {...field} autoComplete="off" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -143,9 +147,9 @@ export default function UserForm({ params }: { params: { id: string } }) {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>{t("Password")}</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="Enter password" {...field} autoComplete="new-password" />
+                    <Input type="password" placeholder={t("Enter password")} {...field} autoComplete="new-password" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -156,9 +160,9 @@ export default function UserForm({ params }: { params: { id: string } }) {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirm Password</FormLabel>
+                  <FormLabel>{t("Confirm Password")}</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="Confirm password" {...field} autoComplete="new-password" />
+                    <Input type="password" placeholder={t("Confirm password")} {...field} autoComplete="new-password" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -169,25 +173,25 @@ export default function UserForm({ params }: { params: { id: string } }) {
               name="role"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Role</FormLabel>
+                  <FormLabel>{t("Role")}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a role" />
+                        <SelectValue placeholder={t("Select a role")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="Super Admin">Super Admin</SelectItem>
-                      <SelectItem value="Doc Organizer">Doc Organizer</SelectItem>
-                      <SelectItem value="Annotator">Annotator</SelectItem>
-                      <SelectItem value="Reviewer">Reviewer</SelectItem>
+                      <SelectItem value="Super Admin">{t("Super Admin")}</SelectItem>
+                      <SelectItem value="Doc Organizer">{t("Doc Organizer")}</SelectItem>
+                      <SelectItem value="Annotator">{t("Annotator")}</SelectItem>
+                      <SelectItem value="Reviewer">{t("Reviewer")}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button type="submit">{isNewUser ? "Create User" : "Update User"}</Button>
+            <Button type="submit">{isNewUser ? t("Create User") : t("Update User")}</Button>
           </form>
         </Form>
       )}

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useTransition } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -20,6 +20,7 @@ import {
   AlertCircle,
   RefreshCw,
 } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 interface Project {
   id: number
@@ -53,6 +54,9 @@ export default function ProjectsPage() {
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
   const [currentPage, setCurrentPage] = useState(1)
   const [projectsPerPage] = useState(10)
+
+  const {t, i18n} = useTranslation()
+  const isRTL = i18n.language === "ar"
 
   useEffect(() => {
     async function fetchProjects() {
@@ -198,10 +202,10 @@ export default function ProjectsPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold">Label Studio Projects</h1>
+        <h1 className="text-3xl font-bold">{t("Label Studio Projects")}</h1>
         <div className="flex items-center justify-center p-8">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-          <span className="ml-2">Loading projects...</span>
+          <span className="ml-2">{t("Loading projects...")}</span>
         </div>
       </div>
     )
@@ -210,26 +214,26 @@ export default function ProjectsPage() {
   if (error) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold">Label Studio Projects</h1>
+        <h1 className="text-3xl font-bold">{t("Label Studio Projects")}</h1>
         <Card className="border-red-200">
           <CardContent className="p-6 space-y-4">
             <div className="flex items-center text-red-600">
               <AlertCircle className="h-6 w-6 mr-2" />
-              <h2 className="text-xl font-bold">Error Loading Projects</h2>
+              <h2 className="text-xl font-bold">{t("Error Loading Projects")}</h2>
             </div>
             <p className="text-gray-700">{error}</p>
             <div className="space-y-2">
-              <p className="text-sm text-gray-600">Possible solutions:</p>
+              <p className="text-sm text-gray-600">{t("Possible solutions:")}</p>
               <ul className="list-disc pl-5 text-sm text-gray-600 space-y-1">
-                <li>Check your internet connection</li>
-                <li>Verify that the API endpoint is correct</li>
-                <li>Ensure your authentication token is valid</li>
-                <li>Try refreshing the page</li>
+                <li>{t("Check your internet connection")}</li>
+                <li>{t("Verify that the API endpoint is correct")}</li>
+                <li>{t("Ensure your authentication token is valid")}</li>
+                <li>{t("Try refreshing the page")}</li>
               </ul>
             </div>
             <Button onClick={retryFetch} className="mt-4 flex items-center">
               <RefreshCw className="h-4 w-4 mr-2" />
-              Try Again
+              {t("Try Again")}
             </Button>
           </CardContent>
         </Card>
@@ -239,14 +243,14 @@ export default function ProjectsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Label Studio Projects</h1>
+      <h1 className="text-3xl font-bold">{t("Label Studio Projects")}</h1>
 
       <Card>
         <CardContent className="p-4 space-y-4">
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
             <Input
-              placeholder="Search projects by title, description, or ID..."
+              placeholder={t("Search projects by title, description, or ID...")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-8"
@@ -257,15 +261,15 @@ export default function ProjectsPage() {
             <TabsList className="w-full grid grid-cols-3">
               <TabsTrigger value="all" className="flex items-center gap-1">
                 <AlertCircle className="h-4 w-4" />
-                All
+                {t("All")}
               </TabsTrigger>
               <TabsTrigger value="Published" className="flex items-center gap-1">
                 <CheckCircle2 className="h-4 w-4 text-green-500" />
-                Published
+                {t("Published")}
               </TabsTrigger>
               <TabsTrigger value="Draft" className="flex items-center gap-1">
                 <Clock className="h-4 w-4 text-amber-500" />
-                Draft
+                {t("Draft")}
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -274,7 +278,7 @@ export default function ProjectsPage() {
             <div className="flex justify-end">
               <Button variant="ghost" size="sm" onClick={clearFilters} className="flex items-center">
                 <X className="h-4 w-4 mr-1" />
-                Clear Filters
+                {t("Clear Filters")}
               </Button>
             </div>
           )}
@@ -283,7 +287,7 @@ export default function ProjectsPage() {
 
       <div className="flex items-center justify-between">
         <p className="text-muted-foreground">
-          Showing {currentProjects.length} of {filteredProjects.length} projects
+          {t("Showing")} {currentProjects.length} {t("of")} {filteredProjects.length} {t("projects")}
           {filteredProjects.length !== projects.length && <span> (filtered from {projects.length} total)</span>}
         </p>
       </div>
@@ -292,26 +296,26 @@ export default function ProjectsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="cursor-pointer" onClick={() => handleSort("id")}>
-                ID {getSortIcon("id")}
+              <TableHead className={isRTL?"cursor-pointer text-right":"cursor-pointer"} onClick={() => handleSort("id")}>
+                {t("ID")} {getSortIcon("id")}
               </TableHead>
-              <TableHead className="cursor-pointer" onClick={() => handleSort("title")}>
-                Title {getSortIcon("title")}
+              <TableHead className={isRTL?"cursor-pointer text-right":"cursor-pointer"} onClick={() => handleSort("title")}>
+                {t("Title")} {getSortIcon("title")}
               </TableHead>
-              <TableHead className="cursor-pointer" onClick={() => handleSort("task_number")}>
-                Tasks {getSortIcon("task_number")}
+              <TableHead className={isRTL?"cursor-pointer text-right":"cursor-pointer"} onClick={() => handleSort("task_number")}>
+                {t("Tasks")} {getSortIcon("task_number")}
               </TableHead>
-              <TableHead className="cursor-pointer" onClick={() => handleSort("progress")}>
-                Progress {getSortIcon("progress")}
+              <TableHead className={isRTL?"cursor-pointer text-right":"cursor-pointer"} onClick={() => handleSort("progress")}>
+                {t("Progress")} {getSortIcon("progress")}
               </TableHead>
-              <TableHead className="cursor-pointer" onClick={() => handleSort("created_by")}>
-                Created By {getSortIcon("created_by")}
+              <TableHead className={isRTL?"cursor-pointer text-right":"cursor-pointer"} onClick={() => handleSort("created_by")}>
+                {t("Created By")} {getSortIcon("created_by")}
               </TableHead>
-              <TableHead className="cursor-pointer" onClick={() => handleSort("created_at")}>
-                Created At {getSortIcon("created_at")}
+              <TableHead className={isRTL?"cursor-pointer text-right":"cursor-pointer"} onClick={() => handleSort("created_at")}>
+                {t("Created At")} {getSortIcon("created_at")}
               </TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className={isRTL?"cursor-pointer text-right":"cursor-pointer"}>{t("Status")}</TableHead>
+              <TableHead className={isRTL?"cursor-pointer text-right":"cursor-pointer"}>{t("Actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -376,12 +380,12 @@ export default function ProjectsPage() {
                       {project.is_published ? (
                         <>
                           <CheckCircle2 className="h-3 w-3" />
-                          Published
+                          {t("Published")}
                         </>
                       ) : (
                         <>
                           <Clock className="h-3 w-3" />
-                          Draft
+                          {t("Draft")}
                         </>
                       )}
                     </Badge>
@@ -392,7 +396,7 @@ export default function ProjectsPage() {
                       variant="ghost"
                       onClick={() => window.open(`https://studio.pathok.com.bd/projects/${project.id}/data`, "_blank")}
                     >
-                      View
+                      {t("View")}
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -418,8 +422,8 @@ export default function ProjectsPage() {
       {filteredProjects.length > 0 && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
-            Showing {indexOfFirstProject + 1} to {Math.min(indexOfLastProject, filteredProjects.length)} of{" "}
-            {filteredProjects.length} projects
+            {t("Showing")} {indexOfFirstProject + 1} {t("to")} {Math.min(indexOfLastProject, filteredProjects.length)} {t("of")}{" "}
+            {filteredProjects.length} {t("projects")}
           </div>
 
           <div className="flex items-center space-x-2">

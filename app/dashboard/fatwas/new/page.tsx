@@ -10,12 +10,13 @@ import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Eye, Filter, Search, Plus, BookOpen, Calendar, FileText, ArrowUpDown, ExternalLink } from "lucide-react"
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
 
 
 const statusOptions = ["All Statuses", "In Review", "Published", "Unpublished"]
 
 export default function CreateIssuePage() {
- 
+  const {t} = useTranslation()
   const [dbSearchTerm, setDbSearchTerm] = useState("")
   const [dbSortBy, setDbSortBy] = useState("date")
   const [dbSortOrder, setDbSortOrder] = useState<"asc" | "desc">("desc")
@@ -162,7 +163,7 @@ export default function CreateIssuePage() {
           <p className="text-sm text-gray-500">{document.author}</p>
           <div className="mt-2 flex flex-wrap gap-2">
             <Badge variant={getStatusBadgeVariant(document.status)} className="text-xs">
-              {document.status}
+              {t(document.status)}
             </Badge>
             <Badge variant="outline" className="text-xs">
               <Calendar className="mr-1 h-3 w-3" />
@@ -177,14 +178,14 @@ export default function CreateIssuePage() {
           <div className="mt-3 flex space-x-2">
             <Button onClick={() => handleViewDocument(document)} variant="outline" size="sm" className="flex-1">
               <Eye className="mr-1 h-3 w-3" />
-              View
+             {t("View")}
             </Button>
             <Link href={`/dashboard/fatwas/new/${document._id}`}><Button 
               size="sm" 
               className="flex-1" 
             >
               <Plus className="mr-1 h-3 w-3" />
-              Create Issue
+              {t("Create Issue")}
             </Button>
             </Link>
           </div>
@@ -195,17 +196,17 @@ export default function CreateIssuePage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Create Issue</h1>
+      <h1 className="text-3xl font-bold">{t("Create Issue")}</h1>
 
       <Tabs defaultValue="database" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="database" className="flex items-center">
             <BookOpen className="mr-2 h-4 w-4" />
-            Uploaded Book
+            {t("Uploaded Book")}
           </TabsTrigger>
           <TabsTrigger value="shamela" className="flex items-center">
             <ExternalLink className="mr-2 h-4 w-4" />
-            Shamela Documents
+            {t("Shamela Documents")}
           </TabsTrigger>
         </TabsList>
 
@@ -213,7 +214,7 @@ export default function CreateIssuePage() {
         <TabsContent value="database" className="space-y-4">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle>Uploaded Book</CardTitle>
+              <CardTitle>{t("Uploaded Book")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -222,7 +223,7 @@ export default function CreateIssuePage() {
                   <div className="relative flex-1">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
                     <Input
-                      placeholder="Search documents..."
+                      placeholder={t("Search documents...")}
                       value={dbSearchTerm}
                       onChange={(e) => setDbSearchTerm(e.target.value)}
                       className="pl-8"
@@ -238,7 +239,7 @@ export default function CreateIssuePage() {
                       <SelectContent>
                         {statusOptions.map((status) => (
                           <SelectItem key={status} value={status}>
-                            {status}
+                            {t(status)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -250,10 +251,10 @@ export default function CreateIssuePage() {
                         <SelectValue placeholder="Sort by" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="date">Date</SelectItem>
-                        <SelectItem value="title">Title</SelectItem>
-                        <SelectItem value="author">Author</SelectItem>
-                        <SelectItem value="status">Status</SelectItem>
+                        <SelectItem value="date">{t("Date")}</SelectItem>
+                        <SelectItem value="title">{t("Title")}</SelectItem>
+                        <SelectItem value="author">{t("Author")}</SelectItem>
+                        <SelectItem value="status">{t("Status")}</SelectItem>
                       </SelectContent>
                     </Select>
 
@@ -276,7 +277,7 @@ export default function CreateIssuePage() {
                     </div>
                   ) : (
                     <div className="flex h-full items-center justify-center">
-                      <p className="text-center text-gray-500">No documents found matching your criteria.</p>
+                      <p className="text-center text-gray-500">{t("No documents found matching your criteria.")}</p>
                     </div>
                   )}
                 </ScrollArea>
@@ -289,7 +290,7 @@ export default function CreateIssuePage() {
         <TabsContent value="shamela" className="space-y-4">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle>Shamela Documents</CardTitle>
+              <CardTitle>{t("Shamela Documents")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -298,7 +299,7 @@ export default function CreateIssuePage() {
                   <div className="relative flex-1">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
                     <Input
-                      placeholder="Search documents..."
+                      placeholder={t("Search documents...")}
                       value={shSearchTerm}
                       onChange={(e) => setShSearchTerm(e.target.value)}
                       className="pl-8"
@@ -314,7 +315,7 @@ export default function CreateIssuePage() {
                       <SelectContent>
                         {statusOptions.map((status) => (
                           <SelectItem key={status} value={status}>
-                            {status}
+                            {t(status)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -326,10 +327,10 @@ export default function CreateIssuePage() {
                         <SelectValue placeholder="Sort by" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="date">Date</SelectItem>
-                        <SelectItem value="title">Title</SelectItem>
-                        <SelectItem value="author">Author</SelectItem>
-                        <SelectItem value="status">Status</SelectItem>
+                        <SelectItem value="date">{t("Date")}</SelectItem>
+                        <SelectItem value="title">{t("Title")}</SelectItem>
+                        <SelectItem value="author">{t("Author")}</SelectItem>
+                        <SelectItem value="status">{t("Status")}</SelectItem>
                       </SelectContent>
                     </Select>
 
@@ -352,7 +353,7 @@ export default function CreateIssuePage() {
                     </div>
                   ) : (
                     <div className="flex h-full items-center justify-center">
-                      <p className="text-center text-gray-500">No documents found matching your criteria.</p>
+                      <p className="text-center text-gray-500">{t("No documents found matching your criteria.")}</p>
                     </div>
                   )}
                 </ScrollArea>

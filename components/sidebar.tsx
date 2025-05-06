@@ -23,6 +23,8 @@ import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/components/auth-provider"
+import { useTranslation } from "react-i18next"
+import { LanguageToggle } from "./language-toggle"
 
 interface NavItem {
   title: string
@@ -41,97 +43,95 @@ interface NavItem {
   roles: string[]
 }
 
-const navItems: NavItem[] = [
-  {
-    title: "Dashboard",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-    roles: ["Super Admin", "Doc Organizer", "Annotator", "Reviewer"],
-  },
-  {
-    title: "Uses & Groups",
-    href: "/dashboard/roles",
-    icon: Users,
-    roles: ["Super Admin"],
-    submenu: [
-      { title: "Users", href: "/dashboard/roles/users" },
-      { title: "Permissions", href: "/dashboard/roles/permissions" },
-    ],
-  },
-  {
-    title: "Library Management",
-    href: "/dashboard/books",
-    icon: BookOpen,
-    roles: ["Super Admin", "Doc Organizer", "Annotator", "Reviewer"],
-    submenu: [
-      { title: "All Books", href: "/dashboard/books" },
-      {
-        title: "Create Book",
-        href: "#",
-        roles: ["Super Admin","Annotator"],
-        submenu: [
-          { title: "Shamela Scraper", href: "/dashboard/books/shamela", roles: ["Super Admin","Annotator"] }
-        ],
-      },
-    ],
-  },
-  {
-    title: "Issue Management",
-    href: "/dashboard/fatwas",
-    icon: FileText,
-    roles: ["Super Admin", "Doc Organizer","Reviewer"],
-    submenu: [
-      { title: "All Issues", href: "/dashboard/fatwas", roles:["Reviewer","Super Admin"]  },
-      { title: "Create Issue", href: "/dashboard/fatwas/new", roles: ["Super Admin"]},
-    ],
-  },
-  {
-    title: "Annotations",
-    href: "/dashboard/annotations",
-    icon: Tag,
-    roles: ["Super Admin", "Annotator"],
-    submenu: [{ title: "All Annotations", href: "/dashboard/annotations" }],
-  },
-  {
-    title: "Categories",
-    href: "/dashboard/categories",
-    icon: FolderTree,
-    roles: ["Super Admin"],
-    submenu: [
-      { title: "All Categories", href: "/dashboard/categories" },
-      { title: "Book Categories", href: "/dashboard/categories/books" },
-      { title: "Book Type", href: "/dashboard/categories/book-type" },
-      { title: "Tags", href: "/dashboard/categories/tags" },
-      { title: "Editors", href: "/dashboard/categories/editors" },
-      { title: "Publishers", href: "/dashboard/categories/publishers" },
-      { title: "Authors", href: "/dashboard/categories/authors" },
-    ],
-  },
-  {
-    title: "Scholars",
-    href: "/dashboard/scholars",
-    icon: User,
-    roles: ["Super Admin"],
-  },
-  {
-    title: "Score Management",
-    href: "/dashboard/score-management",
-    icon: Star,
-    roles: ["Super Admin"],
-  },
-]
-
-interface SidebarProps {
-  onCollapse: (collapsed: boolean) => void
-}
-
-export function Sidebar({ onCollapse }: SidebarProps) {
+export function Sidebar({ onCollapse }: { onCollapse: (collapsed: boolean) => void }) {
   const pathname = usePathname()
   const [openSubmenus, setOpenSubmenus] = useState<Record<string, boolean>>({})
   const [openNestedSubmenus, setOpenNestedSubmenus] = useState<Record<string, boolean>>({})
   const { user, logout } = useAuth()
   const router = useRouter()
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const { t, i18n } = useTranslation()
+
+  // Define nav items with translation keys
+  const navItems: NavItem[] = [
+    {
+      title: "Dashboard",
+      href: "/dashboard",
+      icon: LayoutDashboard,
+      roles: ["Super Admin", "Doc Organizer", "Annotator", "Reviewer"],
+    },
+    {
+      title: "Users & Groups",
+      href: "/dashboard/roles",
+      icon: Users,
+      roles: ["Super Admin"],
+      submenu: [
+        { title: "Users", href: "/dashboard/roles/users" },
+        { title: "Permissions", href: "/dashboard/roles/permissions" },
+      ],
+    },
+    {
+      title: "Library Management",
+      href: "/dashboard/books",
+      icon: BookOpen,
+      roles: ["Super Admin", "Doc Organizer", "Annotator", "Reviewer"],
+      submenu: [
+        { title: "All Books", href: "/dashboard/books" },
+        {
+          title: "Create Book",
+          href: "#",
+          roles: ["Super Admin", "Annotator"],
+          submenu: [
+            { title: "Shamela Scraper", href: "/dashboard/books/shamela", roles: ["Super Admin", "Annotator"] },
+          ],
+        },
+      ],
+    },
+    {
+      title: "Issue Management",
+      href: "/dashboard/fatwas",
+      icon: FileText,
+      roles: ["Super Admin", "Doc Organizer", "Reviewer"],
+      submenu: [
+        { title: "All Issues", href: "/dashboard/fatwas", roles: ["Reviewer", "Super Admin"] },
+        { title: "Create Issue", href: "/dashboard/fatwas/new", roles: ["Super Admin"] },
+      ],
+    },
+    {
+      title: "Annotations",
+      href: "/dashboard/annotations",
+      icon: Tag,
+      roles: ["Super Admin", "Annotator"],
+      submenu: [{ title: "All Annotations", href: "/dashboard/annotations" }],
+    },
+    {
+      title: "Categories",
+      href: "/dashboard/categories",
+      icon: FolderTree,
+      roles: ["Super Admin"],
+      submenu: [
+        { title: "All Categories", href: "/dashboard/categories" },
+        { title: "Book Categories", href: "/dashboard/categories/books" },
+        { title: "Book Type", href: "/dashboard/categories/book-type" },
+        { title: "Tags", href: "/dashboard/categories/tags" },
+        { title: "Editors", href: "/dashboard/categories/editors" },
+        { title: "Publishers", href: "/dashboard/categories/publishers" },
+        { title: "Authors", href: "/dashboard/categories/authors" },
+      ],
+    },
+    {
+      title: "Scholars",
+      href: "/dashboard/scholars",
+      icon: User,
+      roles: ["Super Admin"],
+    },
+    {
+      title: "Score Management",
+      href: "/dashboard/score-management",
+      icon: Star,
+      roles: ["Super Admin"],
+    },
+  ]
 
   const isActive = (item: NavItem) => {
     if (item.href === "/dashboard") {
@@ -146,10 +146,6 @@ export function Sidebar({ onCollapse }: SidebarProps) {
       })
     }
     return pathname === item.href
-  }
-
-  const isSubitemActive = (href: string) => {
-    return pathname === href
   }
 
   useEffect(() => {
@@ -178,6 +174,14 @@ export function Sidebar({ onCollapse }: SidebarProps) {
     setOpenSubmenus(currentOpenSubmenus)
     setOpenNestedSubmenus(currentOpenNestedSubmenus)
   }, [pathname])
+
+  // Load saved language preference
+  useEffect(() => {
+    const savedLanguage = localStorage.getItem("language")
+    if (savedLanguage) {
+      i18n.changeLanguage(savedLanguage)
+    }
+  }, [i18n])
 
   const toggleSubmenu = (title: string) => {
     setOpenSubmenus((prev) => ({
@@ -219,10 +223,7 @@ export function Sidebar({ onCollapse }: SidebarProps) {
             }
             return subitem
           })
-          .filter(
-            (subitem) =>
-              !subitem.submenu || subitem.submenu.length > 0,
-          )
+          .filter((subitem) => !subitem.submenu || subitem.submenu.length > 0)
         return filteredSubmenu.length > 0
       }
       return true
@@ -233,10 +234,6 @@ export function Sidebar({ onCollapse }: SidebarProps) {
   useEffect(() => {
     onCollapse(isCollapsed)
   }, [isCollapsed, onCollapse])
-
-  const handleNestedItemClick = (e: React.MouseEvent, href: string) => {
-    router.push(href)
-  }
 
   return (
     <div
@@ -254,7 +251,7 @@ export function Sidebar({ onCollapse }: SidebarProps) {
           <>
             <Link href="/dashboard" className="flex items-center space-x-2">
               <LayoutDashboard className="h-6 w-6 text-primary" />
-              <span className="font-bold text-lg text-white">Annotation</span>
+              <span className="font-bold text-lg text-white">{t("Annotation")}</span>
             </Link>
             <Button variant="ghost" size="icon" className="ml-auto" onClick={() => setIsCollapsed(true)}>
               <ChevronLeft className="h-6 w-6 text-primary" />
@@ -262,6 +259,14 @@ export function Sidebar({ onCollapse }: SidebarProps) {
           </>
         )}
       </div>
+
+      {/* Language Toggle */}
+      {!isCollapsed && (
+        <div className="px-4 py-2 border-b border-gray-800">
+          <LanguageToggle />
+        </div>
+      )}
+
       <ScrollArea className="flex-1">
         <nav className="space-y-1 px-1 py-2">
           {filteredNavItems.map((item) => (
@@ -276,11 +281,13 @@ export function Sidebar({ onCollapse }: SidebarProps) {
                 asChild={!item.submenu}
               >
                 {item.submenu ? (
-                  <div className="flex w-full items-center py-2">
-                    <item.icon className="mr-2 h-4 w-4" />
+                  <div className={cn("flex w-full items-center py-2", i18n.language === "ar" && "flex-row-reverse")}>
+                    <item.icon className={cn("h-4 w-4", i18n.language === "ar" ? "ml-2" : "mr-2")} />
                     {!isCollapsed && (
                       <>
-                        <span className="flex-1 text-left">{item.title}</span>
+                        <span className={cn("flex-1", i18n.language === "ar" ? "text-right" : "text-left")}>
+                          {t(item.title)}
+                        </span>
                         <ChevronDown
                           className={cn("h-4 w-4 transition-transform", openSubmenus[item.title] && "rotate-180")}
                         />
@@ -288,9 +295,16 @@ export function Sidebar({ onCollapse }: SidebarProps) {
                     )}
                   </div>
                 ) : (
-                  <Link href={item.href} className="flex w-full items-center py-2">
-                    <item.icon className="mr-2 h-4 w-4" />
-                    {!isCollapsed && <span className="flex-1 text-left">{item.title}</span>}
+                  <Link
+                    href={item.href}
+                    className={cn("flex w-full items-center py-2", i18n.language === "ar" && "flex-row-reverse")}
+                  >
+                    <item.icon className={cn("h-4 w-4", i18n.language === "ar" ? "ml-2" : "mr-2")} />
+                    {!isCollapsed && (
+                      <span className={cn("flex-1", i18n.language === "ar" ? "text-right" : "text-left")}>
+                        {t(item.title)}
+                      </span>
+                    )}
                   </Link>
                 )}
               </Button>
@@ -308,6 +322,7 @@ export function Sidebar({ onCollapse }: SidebarProps) {
                                 "flex items-center justify-between rounded-md py-2 pl-4 text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white cursor-pointer",
                                 subitem.submenu.some((nestedItem) => pathname === nestedItem.href) &&
                                   "bg-gray-800 text-white",
+                                i18n.language === "ar" && "flex-row-reverse pr-4 pl-0",
                               )}
                               onClick={(e) => {
                                 e.preventDefault()
@@ -315,7 +330,7 @@ export function Sidebar({ onCollapse }: SidebarProps) {
                                 toggleNestedSubmenu(e, subitem.title)
                               }}
                             >
-                              <span>{subitem.title}</span>
+                              <span>{t(subitem.title)}</span>
                               <ChevronDown
                                 className={cn(
                                   "h-4 w-4 transition-transform",
@@ -324,7 +339,7 @@ export function Sidebar({ onCollapse }: SidebarProps) {
                               />
                             </div>
                             {openNestedSubmenus[subitem.title] && (
-                              <div className="ml-4 mt-1 space-y-1">
+                              <div className={cn("mt-1 space-y-1", i18n.language === "ar" ? "mr-4" : "ml-4")}>
                                 {subitem.submenu
                                   .filter((nestedItem) => userHasAccess(nestedItem.roles))
                                   .map((nestedItem) => (
@@ -332,12 +347,13 @@ export function Sidebar({ onCollapse }: SidebarProps) {
                                       key={nestedItem.href}
                                       href={nestedItem.href}
                                       className={cn(
-                                        "block rounded-md py-2 pl-4 text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white",
+                                        "block rounded-md py-2 text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white",
                                         pathname === nestedItem.href && "bg-gray-800 text-white",
+                                        i18n.language === "ar" ? "pr-4 text-right" : "pl-4 text-left",
                                       )}
                                       onClick={(e) => e.stopPropagation()}
                                     >
-                                      {nestedItem.title}
+                                      {t(nestedItem.title)}
                                     </Link>
                                   ))}
                               </div>
@@ -347,11 +363,12 @@ export function Sidebar({ onCollapse }: SidebarProps) {
                           <Link
                             href={subitem.href}
                             className={cn(
-                              "block rounded-md py-2 pl-4 text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white",
+                              "block rounded-md py-2 text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white",
                               pathname === subitem.href && "bg-gray-800 text-white",
+                              i18n.language === "ar" ? "pr-4 text-right" : "pl-4 text-left",
                             )}
                           >
-                            {subitem.title}
+                            {t(subitem.title)}
                           </Link>
                         )}
                       </div>
@@ -363,11 +380,13 @@ export function Sidebar({ onCollapse }: SidebarProps) {
         </nav>
       </ScrollArea>
       <div className="p-4 flex items-center justify-between">
-        <div className="flex items-center space-x-2">
+        <div
+          className={cn("flex items-center space-x-2", i18n.language === "ar" && "flex-row-reverse space-x-reverse")}
+        >
           <User className="h-6 w-6 text-gray-400" />
           {!isCollapsed && <span className="text-sm font-medium text-gray-300">{user?.name}</span>}
         </div>
-        <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
+        <Button variant="ghost" size="icon" onClick={handleLogout} title={t("Logout")}>
           <LogOut className="h-4 w-4 text-gray-400" />
         </Button>
       </div>

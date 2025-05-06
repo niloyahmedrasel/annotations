@@ -19,6 +19,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Mail, Phone, Calendar, MapPin, Shield, Clock, AlertCircle } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 interface UserType {
   _id: string
@@ -36,6 +37,9 @@ interface UserType {
 type SortKey = "name" | "email" | "role"
 
 export default function UsersPage() {
+  const { t, i18n } = useTranslation()
+  const isRTL = i18n.language === "ar"
+
   const [users, setUsers] = useState<UserType[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
@@ -189,49 +193,73 @@ export default function UsersPage() {
     setSelectedUser(user)
   }
 
-  if (loading) return <p>Loading users...</p>
-  if (error) return <p className="text-red-500">Error: {error}</p>
+  if (loading) return <p>{t("Loading users...")}</p>
+  if (error)
+    return (
+      <p className="text-red-500">
+        {t("Error:")} {error}
+      </p>
+    )
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Users</h1>
+        <h1 className="text-3xl font-bold">{t("Users")}</h1>
         <Button asChild>
-          <Link href="/dashboard/roles/users/new">Add New User</Link>
+          <Link href="/dashboard/roles/users/new">{t("Add New User")}</Link>
         </Button>
       </div>
       <div className="flex space-x-4">
         <Input
-          placeholder="Search users..."
+          placeholder={t("Search users...")}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm"
+          className={isRTL? "max-w-lg ml-5" : "max-w-sm"}
         />
         <Select value={roleFilter} onValueChange={setRoleFilter}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by role" />
+            <SelectValue placeholder={t("Filter by role")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="All">All Roles</SelectItem>
-            <SelectItem value="Doc Organizer">Doc Organizer</SelectItem>
-            <SelectItem value="Annotator">Annotator</SelectItem>
-            <SelectItem value="Reviewer">Reviewer</SelectItem>
+            <SelectItem value="All">{t("All Roles")}</SelectItem>
+            <SelectItem value="Doc Organizer">{t("Doc Organizer")}</SelectItem>
+            <SelectItem value="Annotator">{t("Annotator")}</SelectItem>
+            <SelectItem value="Reviewer">{t("Reviewer")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="cursor-pointer" onClick={() => handleSort("name")}>
-              Name
-            </TableHead>
-            <TableHead className="cursor-pointer" onClick={() => handleSort("email")}>
-              Email
-            </TableHead>
-            <TableHead className="cursor-pointer" onClick={() => handleSort("role")}>
-              Role
-            </TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+          {
+            isRTL ? (
+              <>
+                <TableHead className="cursor-pointer text-right" onClick={() => handleSort("name")}>
+                  {t("Name")}
+                </TableHead>
+                <TableHead className="cursor-pointer text-right" onClick={() => handleSort("email")}>
+                  {t("Email")}
+                </TableHead>
+                <TableHead className="cursor-pointer text-right" onClick={() => handleSort("role")}>
+                  {t("Role")}
+                </TableHead>
+                <TableHead className="text-right">{t("Actions")}</TableHead>
+              </>
+            ) : (
+              <>
+                <TableHead className="cursor-pointer text-left" onClick={() => handleSort("name")}>
+                  {t("Name")}
+                </TableHead>
+                <TableHead className="cursor-pointer text-left" onClick={() => handleSort("email")}>
+                  {t("Email")}
+                </TableHead>
+                <TableHead className="cursor-pointer text-left" onClick={() => handleSort("role")}>
+                  {t("Role")}
+                </TableHead>
+                <TableHead className="text-right">{t("Actions")}</TableHead>
+              </>
+            )
+          }
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -244,11 +272,11 @@ export default function UsersPage() {
               <TableCell className="font-medium">{user.name}</TableCell>
               <TableCell>{user.email}</TableCell>
               <TableCell>
-                <Badge variant="default">{user.role}</Badge>
+                <Badge variant="default">{t(user.role)}</Badge>
               </TableCell>
               <TableCell className="text-right">
                 <Button variant="ghost" size="sm" asChild onClick={(e) => e.stopPropagation()}>
-                  <Link href={`/dashboard/roles/users/${user._id}`}>Edit</Link>
+                  <Link href={`/dashboard/roles/users/${user._id}`}>{t("Edit")}</Link>
                 </Button>
                 <Button
                   onClick={(e) => {
@@ -258,7 +286,7 @@ export default function UsersPage() {
                   variant="ghost"
                   size="sm"
                 >
-                  Delete
+                  {t("Delete")}
                 </Button>
                 <Button
                   variant="ghost"
@@ -268,7 +296,7 @@ export default function UsersPage() {
                     toggleFreeze(user._id)
                   }}
                 >
-                  {user.isfreeze ? "Unfreeze" : "Freeze"}
+                  {user.isfreeze ? t("Unfreeze") : t("Freeze")}
                 </Button>
               </TableCell>
             </TableRow>
@@ -278,17 +306,17 @@ export default function UsersPage() {
       <Dialog open={userToDelete !== null} onOpenChange={(open) => !open && setUserToDelete(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogTitle>{t("Confirm Deletion")}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this user? This action cannot be undone.
+              {t("Are you sure you want to delete this user? This action cannot be undone.")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setUserToDelete(null)}>
-              Cancel
+              {t("Cancel")}
             </Button>
             <Button variant="destructive" onClick={confirmDelete}>
-              Delete
+              {t("Delete")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -306,9 +334,9 @@ export default function UsersPage() {
                   </Avatar>
                   <div>
                     <h2 className="text-2xl font-bold">{selectedUser.name}</h2>
-                    <p className="text-purple-100">{selectedUser.role}</p>
+                    <p className="text-purple-100">{t(selectedUser.role)}</p>
                     <Badge variant="secondary" className="mt-2 bg-white/20 hover:bg-white/30">
-                      {selectedUser.isfreeze ? "Account Frozen" : "Active Account"}
+                      {selectedUser.isfreeze ? t("Account Frozen") : t("Active Account")}
                     </Badge>
                   </div>
                 </div>
@@ -318,7 +346,9 @@ export default function UsersPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Card>
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">Contact Information</CardTitle>
+                      <CardTitle className="text-sm font-medium text-muted-foreground">
+                        {t("Contact Information")}
+                      </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div className="flex items-center gap-2">
@@ -338,20 +368,28 @@ export default function UsersPage() {
 
                   <Card>
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">Account Details</CardTitle>
+                      <CardTitle className="text-sm font-medium text-muted-foreground">
+                        {t("Account Details")}
+                      </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div className="flex items-center gap-2">
                         <Shield className="h-4 w-4 text-muted-foreground" />
-                        <span>Role: {selectedUser.role}</span>
+                        <span>
+                          {t("Role:")} {t(selectedUser.role)}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span>Joined: {selectedUser.joinedDate}</span>
+                        <span>
+                          {t("Joined:")} {selectedUser.joinedDate}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-muted-foreground" />
-                        <span>Last active: {selectedUser.lastActive}</span>
+                        <span>
+                          {t("Last active:")} {selectedUser.lastActive}
+                        </span>
                       </div>
                     </CardContent>
                   </Card>
@@ -360,7 +398,9 @@ export default function UsersPage() {
                 {selectedUser.isfreeze && (
                   <div className="bg-amber-50 border border-amber-200 rounded-md p-3 flex items-center gap-2">
                     <AlertCircle className="h-5 w-5 text-amber-500" />
-                    <p className="text-amber-700 text-sm">This account is currently frozen and has limited access.</p>
+                    <p className="text-amber-700 text-sm">
+                      {t("This account is currently frozen and has limited access.")}
+                    </p>
                   </div>
                 )}
               </div>
@@ -368,10 +408,10 @@ export default function UsersPage() {
               {/* Footer with actions */}
               <div className="border-t p-4 flex justify-end gap-2 bg-muted/20">
                 <Button variant="outline" onClick={() => setSelectedUser(null)}>
-                  Close
+                  {t("Close")}
                 </Button>
                 <Button asChild>
-                  <Link href={`/dashboard/roles/users/${selectedUser._id}`}>Edit User</Link>
+                  <Link href={`/dashboard/roles/users/${selectedUser._id}`}>{t("Edit User")}</Link>
                 </Button>
                 {selectedUser.isfreeze ? (
                   <Button
@@ -381,7 +421,7 @@ export default function UsersPage() {
                       setSelectedUser(null)
                     }}
                   >
-                    Unfreeze Account
+                    {t("Unfreeze Account")}
                   </Button>
                 ) : (
                   <Button
@@ -391,7 +431,7 @@ export default function UsersPage() {
                       setSelectedUser(null)
                     }}
                   >
-                    Freeze Account
+                    {t("Freeze Account")}
                   </Button>
                 )}
               </div>

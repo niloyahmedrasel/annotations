@@ -18,6 +18,7 @@ import {
 import { BookOpen, FileText, Tag, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { toast } from "react-toastify"
+import { useTranslation } from "react-i18next"
 
 interface Book {
   _id: string
@@ -46,6 +47,9 @@ export default function BookDetailsPage({ params }: { params: { id: string } }) 
   const [annotationChecked, setAnnotationChecked] = useState(false)
   const [publicReadingChecked, setPublicReadingChecked] = useState(false)
 
+  const { t, i18n } = useTranslation()
+  const isRTL = i18n.language === "ar"
+
   useEffect(() => {
     if (!params.id) return
 
@@ -56,7 +60,7 @@ export default function BookDetailsPage({ params }: { params: { id: string } }) 
         const token = user ? JSON.parse(user).token : null
 
         if (!token) {
-          toast.error("Authentication required")
+          toast.error(t("Authentication required"))
           router.push("/login")
           return
         }
@@ -92,7 +96,7 @@ export default function BookDetailsPage({ params }: { params: { id: string } }) 
 
   const handleOpenDoc = async () => {
     if (!book || !book?.bookFile) {
-      toast.error("Book file not found!")
+      toast.error(t("Book file not found!"))
       return
     }
 
@@ -107,7 +111,7 @@ export default function BookDetailsPage({ params }: { params: { id: string } }) 
       const token = user ? JSON.parse(user).token : null
 
       if (!token) {
-        toast.error("Authentication required")
+        toast.error(t("Authentication required"))
         return
       }
 
@@ -139,7 +143,7 @@ export default function BookDetailsPage({ params }: { params: { id: string } }) 
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 className="h-8 w-8 animate-spin text-primary mr-2" />
-        <span>Loading book details...</span>
+        <span>{t("Loading book details...")}</span>
       </div>
     )
   }
@@ -147,16 +151,16 @@ export default function BookDetailsPage({ params }: { params: { id: string } }) 
   if (!book) {
     return (
       <div className="text-center py-10">
-        <h2 className="text-2xl font-bold mb-4">Book Not Found</h2>
-        <p className="mb-6">The book you're looking for could not be found.</p>
-        <Button onClick={() => router.push("/dashboard/books")}>Back to Books</Button>
+        <h2 className="text-2xl font-bold mb-4">{t("Book Not Found")}</h2>
+        <p className="mb-6">{t("The book you're looking for could not be found.")}</p>
+        <Button onClick={() => router.push("/dashboard/books")}>{t("Back to Books")}</Button>
       </div>
     )
   }
 
   return (
     <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-8">Book Details</h1>
+      <h1 className="text-3xl font-bold mb-8">{t("Book Details")}</h1>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
 
         <Card className="col-span-1">
@@ -188,7 +192,7 @@ export default function BookDetailsPage({ params }: { params: { id: string } }) 
             </div>
             <div className="flex items-center space-x-2">
               <FileText className="w-5 h-5 text-gray-400" />
-              <Badge variant={book.status === "Published" ? "default" : "secondary"}>{book.status}</Badge>
+              <Badge variant={book.status === "Published" ? "default" : "secondary"}>{t(book.status)}</Badge>
             </div>
             <div className="flex flex-wrap gap-2">
               {book.category && (
@@ -198,11 +202,11 @@ export default function BookDetailsPage({ params }: { params: { id: string } }) 
                 </Badge>
               )}
             </div>
-            <p className="text-gray-600">{book.description || "No description available"}</p>
+            <p className="text-gray-600">{book.description || t("No description available")}</p>
 
 
             <div className="mt-6 space-y-3 border-t pt-4">
-              <h3 className="font-medium text-lg">Availability Settings</h3>
+              <h3 className="font-medium text-lg">{t("Availability Settings")}</h3>
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <Checkbox
@@ -211,7 +215,7 @@ export default function BookDetailsPage({ params }: { params: { id: string } }) 
                     onCheckedChange={(checked) => setModificationChecked(checked === true)}
                   />
                   <label htmlFor="availableForModification" className="text-sm font-medium leading-none">
-                    Available for doc modification
+                    {t("Available for doc modification")}
                   </label>
                 </div>
 
@@ -222,7 +226,7 @@ export default function BookDetailsPage({ params }: { params: { id: string } }) 
                     onCheckedChange={(checked) => setAnnotationChecked(checked === true)}
                   />
                   <label htmlFor="availableForAnnotation" className="text-sm font-medium leading-none">
-                    Available for annotation
+                   {t("Available for annotation")}
                   </label>
                 </div>
 
@@ -233,7 +237,7 @@ export default function BookDetailsPage({ params }: { params: { id: string } }) 
                     onCheckedChange={(checked) => setPublicReadingChecked(checked === true)}
                   />
                   <label htmlFor="availableForPublicReading" className="text-sm font-medium leading-none">
-                    Available for public reading
+                    {t("Available for public reading")}
                   </label>
                 </div>
               </div>
@@ -245,23 +249,23 @@ export default function BookDetailsPage({ params }: { params: { id: string } }) 
         <Card className="col-span-1 md:col-span-3 lg:col-span-1">
           <CardContent className="p-6 space-y-4">
             <Button className="w-full" onClick={handleOpenDoc}>
-              Open Doc
+              {t("Open Doc")}
             </Button>
 
             <Button className="w-full text-black" variant="secondary" asChild>
-              <Link href={`/dashboard/fatwas/new/${book._id}`}>Create Issue</Link>
+              <Link href={`/dashboard/fatwas/new/${book._id}`}>{t("Create Issue")}</Link>
             </Button>
 
             <Button className="w-full" variant="default" asChild>
-              <Link href={"/dashboard/annotations"}>Annotate</Link>
+              <Link href={"/dashboard/annotations"}>{t("Annotate")}</Link>
             </Button>
 
             <Button variant="destructive" className="w-full" onClick={() => setIsDeleteDialogOpen(true)}>
-              Delete
+              {t("Delete")}
             </Button>
 
             <Button variant="secondary" className="w-full" disabled>
-              <Link href={`/dashboard/books/process/${book._id}`}>Process Book</Link>
+              <Link href={`/dashboard/books/process/${book._id}`}>{t("Process Book")}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -271,23 +275,23 @@ export default function BookDetailsPage({ params }: { params: { id: string } }) 
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogTitle>{t("Confirm Deletion")}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this book? This action cannot be undone.
+              {t("Are you sure you want to delete this book? This action cannot be undone.")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)} disabled={isDeleting}>
-              Cancel
+              {t("Cancel")}
             </Button>
             <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
               {isDeleting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Deleting...
+                  {t("Deleting...")}
                 </>
               ) : (
-                "Delete"
+                t("Delete")
               )}
             </Button>
           </DialogFooter>

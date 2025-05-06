@@ -22,6 +22,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox"
 import { Filter, Search, Plus, Loader2, Eye, Trash2, Tag } from 'lucide-react'
 import { toast } from "react-toastify"
+import { useTranslation } from "react-i18next"
 
 interface Issue {
   _id: string
@@ -54,6 +55,9 @@ export default function FatwasPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [issueToDelete, setIssueToDelete] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+
+  const {t, i18n} = useTranslation()
+  const isRTL = i18n.language === "ar"
 
   const fetchIssues = async () => {
     try {
@@ -246,7 +250,7 @@ export default function FatwasPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <span className="ml-2">Loading issues...</span>
+        <span className="ml-2">{t("Loading...")}</span>
       </div>
     )
   }
@@ -254,9 +258,9 @@ export default function FatwasPage() {
   if (error) {
     return (
       <Card className="max-w-lg mx-auto my-8 p-6">
-        <h2 className="text-xl font-bold text-red-500 mb-4">Error Loading Issues</h2>
+        <h2 className="text-xl font-bold text-red-500 mb-4">{t("Error Loading Issues")}</h2>
         <p className="mb-4">{error}</p>
-        <Button onClick={() => window.location.reload()}>Try Again</Button>
+        <Button onClick={() => window.location.reload()}>{t("Try Again")}</Button>
       </Card>
     )
   }
@@ -264,16 +268,16 @@ export default function FatwasPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Issue Viewer</h1>
+        <h1 className="text-3xl font-bold">{t("Issue Viewer")}</h1>
         <div className="flex space-x-2">
-          <Button variant="outline" onClick={() => setShowFilters(!showFilters)} className="flex items-center">
+          <Button variant="outline" onClick={() => setShowFilters(!showFilters)} className={isRTL?"flex items-center mx-3":"flex items-center"}>
             <Filter className="mr-2 h-4 w-4" />
-            Filters
+            {t("Filters")}
           </Button>
           <Button asChild>
             <Link href="/dashboard/fatwas/new" className="flex items-center">
               <Plus className="mr-2 h-4 w-4" />
-              Create New Issue
+              {t("Create New Issue")}
             </Link>
           </Button>
         </div>
@@ -297,7 +301,7 @@ export default function FatwasPage() {
           <CardHeader>
             <CardTitle className="flex items-center">
               <Tag className="mr-2 h-5 w-5" />
-              Filter by Tags
+              {t("Filter by Tags")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -326,13 +330,13 @@ export default function FatwasPage() {
                       {selectedTags.length} tag{selectedTags.length !== 1 ? 's' : ''} selected
                     </div>
                     <Button variant="outline" size="sm" onClick={clearTagFilters}>
-                      Clear All
+                      {t("Clear All")}
                     </Button>
                   </div>
                 )}
               </>
             ) : (
-              <div className="text-muted-foreground text-sm">No tags available</div>
+              <div className="text-muted-foreground text-sm">{t("No tags available")}</div>
             )}
           </CardContent>
         </Card>
@@ -350,7 +354,7 @@ export default function FatwasPage() {
                 className={`${selectedStatus === status ? getStatusColor(status) + " text-white" : ""}`}
                 onClick={() => setSelectedStatus(status === selectedStatus ? "All Statuses" : status)}
               >
-                {status}
+                {t(status)}
               </Button>
             ),
         )}
@@ -358,7 +362,7 @@ export default function FatwasPage() {
 
       {selectedTags.length > 0 && (
         <div className="flex flex-wrap gap-2 items-center">
-          <span className="text-sm font-medium">Filtered by tags:</span>
+          <span className="text-sm font-medium">{t("Filtered by tags:")}</span>
           {selectedTags.map(tag => (
             <Badge 
               key={tag} 
@@ -370,7 +374,7 @@ export default function FatwasPage() {
                 onClick={() => toggleTag(tag)}
                 className="ml-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 p-0.5"
               >
-                <span className="sr-only">Remove</span>
+                <span className="sr-only">{t("Remove")}</span>
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M9 3L3 9M3 3L9 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
@@ -378,7 +382,7 @@ export default function FatwasPage() {
             </Badge>
           ))}
           <Button variant="ghost" size="sm" onClick={clearTagFilters} className="h-7 px-2 text-xs">
-            Clear all
+            {t("Clear All")}
           </Button>
         </div>
       )}
@@ -387,15 +391,15 @@ export default function FatwasPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Title</TableHead>
-              <TableHead>Creator</TableHead>
-              <TableHead>Book Number</TableHead>
-              <TableHead>Page</TableHead>
-              <TableHead>Volume</TableHead>
-              <TableHead>chapter</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead  className={isRTL? "text-right" : ""}>{t("Title")}</TableHead>
+              <TableHead  className={isRTL? "text-right" : ""}>{t("Creator")}</TableHead>
+              <TableHead  className={isRTL? "text-right" : ""}>{t("Book Number")}</TableHead>
+              <TableHead  className={isRTL? "text-right" : ""}>{t("Page")}</TableHead>
+              <TableHead  className={isRTL? "text-right" : ""}>{t("Volume")}</TableHead>
+              <TableHead  className={isRTL? "text-right" : ""}>{t("chapter")}</TableHead>
+              <TableHead  className={isRTL? "text-right" : ""}>{t("Created At")}</TableHead>
+              <TableHead  className={isRTL? "text-right" : ""}>{t("Status")}</TableHead>
+              <TableHead  className={isRTL? "text-right" : "text-right"}>{t("Actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -410,14 +414,14 @@ export default function FatwasPage() {
                   <TableCell>{issue.chapter}</TableCell>
                   <TableCell>{formatDate(issue.createdAt)}</TableCell>
                   <TableCell>
-                    <Badge className={getStatusColor(issue.status) + " text-white"}>{issue.status}</Badge>
+                    <Badge className={getStatusColor(issue.status) + " text-white"}>{t(issue.status)}</Badge>
                   </TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="sm" onClick={() => handleViewIssue(issue)} className="mr-1">
-                      View
+                      {t("View")}
                     </Button>
                     <Button onClick={() => handleAnnotateIssue(issue._id)} variant="ghost" size="sm" className="mr-1">
-                      Annotate
+                      {t("Annotate")}
                     </Button>
                     <Button
                       variant="ghost"
@@ -426,7 +430,7 @@ export default function FatwasPage() {
                       className="text-red-500 hover:text-red-700 hover:bg-red-50"
                     >
                       <Trash2 className="h-4 w-4 mr-1" />
-                      Delete
+                      {t("Delete")}
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -434,7 +438,7 @@ export default function FatwasPage() {
             ) : (
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-4">
-                  No issues found matching your filters.
+                  {t("No issues found matching your filters.")}
                 </TableCell>
               </TableRow>
             )}

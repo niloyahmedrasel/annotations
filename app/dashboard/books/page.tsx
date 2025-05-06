@@ -18,6 +18,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { useAuth } from "@/components/auth-provider"
+import { useTranslation } from "react-i18next"
 
 interface Book {
   id: string
@@ -42,6 +43,9 @@ export default function BooksPage() {
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const { t, i18n } = useTranslation()
+  const isRTL = i18n.language === "ar"
 
   useEffect(() => {
     const fetchBooks = async () => {
@@ -118,24 +122,24 @@ export default function BooksPage() {
     <div className="space-y-4">
       <div className="w-full mb-6">
         <Input
-          placeholder="Search books..."
+          placeholder={t("Search books...")}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-1/2 mx-auto h-9"
         />
       </div>
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Books</h1>
+        <h1 className="text-3xl font-bold">{t("All Books")}</h1>
         {user?.role === "Super Admin" && (
           <Button asChild>
-            <Link href="/dashboard/books/new">Add New Book</Link>
+            <Link href="/dashboard/books/new">{t("Add New Book")}</Link>
           </Button>
         )}
       </div>
       <div className="flex flex-col md:flex-row gap-4">
         <div className="w-full md:w-1/4 space-y-4">
           <div className="space-y-2">
-            <h2 className="text-lg font-semibold">Book Types</h2>
+            <h2 className="text-lg font-semibold">{t("Book Types")}</h2>
             {bookTypes.map((type) => (
               <div key={type} className="flex items-center space-x-2">
                 <Checkbox
@@ -143,12 +147,12 @@ export default function BooksPage() {
                   checked={selectedTypes.includes(type)}
                   onCheckedChange={() => toggleType(type)}
                 />
-                <Label htmlFor={`type-${type}`}>{type}</Label>
+                <Label htmlFor={`type-${type}`}>{t(type)}</Label>
               </div>
             ))}
           </div>
           <div className="space-y-2">
-            <h2 className="text-lg font-semibold">Book Statuses</h2>
+            <h2 className="text-lg font-semibold">{t("Book Statuses")}</h2>
             {bookStatuses.map((status) => (
               <div key={status} className="flex items-center space-x-2">
                 <Checkbox
@@ -156,18 +160,18 @@ export default function BooksPage() {
                   checked={selectedStatuses.includes(status)}
                   onCheckedChange={() => toggleStatus(status)}
                 />
-                <Label htmlFor={`status-${status}`}>{status}</Label>
+                <Label htmlFor={`status-${status}`}>{t(status)}</Label>
               </div>
             ))}
           </div>
         </div>
         <div className="w-full md:w-3/4">
           {loading ? (
-            <p className="text-center text-gray-600">Loading books...</p>
+            <p className="text-center text-gray-600">{t("Loading...")}</p>
           ) : error ? (
             <p className="text-center text-red-500">{error}</p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className={isRTL?"grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mx-auto":"grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"}>
               {filteredBooks.map((book) => (
                 <Card key={book.id} className="flex flex-col h-full transition-all duration-300 hover:shadow-lg">
                   <div className="aspect-w-16 aspect-h-9">
@@ -187,7 +191,7 @@ export default function BooksPage() {
                     </div>
                     <div className="flex items-center mb-2">
                       <BookOpen className="w-4 h-4 mr-2" />
-                      <span className="text-sm text-gray-600">{book.type}</span>
+                      <span className="text-sm text-gray-600">{t(book.type)}</span>
                     </div>
                     <div className="flex flex-wrap gap-2 mb-2">
                       {book.categories.map((category) => (
@@ -198,18 +202,18 @@ export default function BooksPage() {
                       ))}
                     </div>
                     <Badge variant={book.status === "Published" ? "default" : "secondary"} className="text-xs">
-                      {book.status}
+                      {t(book.status)}
                     </Badge>
                   </CardContent>
                   <CardFooter className="p-4 flex gap-2">
                     <Button variant="default" size="sm" asChild className="flex-1">
                       <Link href={`/dashboard/books/${book.id}`}>
-                        <Eye className="w-4 h-4 mr-1" /> View
+                        <Eye className="w-4 h-4 mr-1" /> {t("View")}
                       </Link>
                     </Button>
                     <Button variant="secondary" size="sm" asChild className="flex-1">
                       <Link href={`/dashboard/books/new?id=${book.id}`}>
-                        <Edit className="w-4 h-4 mr-1" /> Edit
+                        <Edit className="w-4 h-4 mr-1" /> {t("Edit")}
                       </Link>
                     </Button>
                   </CardFooter>

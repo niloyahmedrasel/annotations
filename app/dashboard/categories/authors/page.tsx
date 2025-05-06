@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { PlusCircle, Trash2, Search } from "lucide-react"
 import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
+import { useTranslation } from "react-i18next"
 
 interface Author {
   _id: string
@@ -18,6 +19,9 @@ export default function AuthorsPage() {
   const [newAuthor, setNewAuthor] = useState({ title: "" })
   const [searchQuery, setSearchQuery] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+
+  const {t,i18n} = useTranslation()
+  const isRTL = i18n.language === "ar"
  
   const user = sessionStorage.getItem("user")
   const token = user ? JSON.parse(user).token : null
@@ -50,7 +54,7 @@ export default function AuthorsPage() {
 
   const addAuthor = async () => {
     if (newAuthor.title.trim() === "") {
-      toast.warning("Author title cannot be empty")
+      toast.warning(t("Author title cannot be empty"))
       return
     }
 
@@ -72,7 +76,7 @@ export default function AuthorsPage() {
       }
 
       fetchAuthors()
-      toast.success("Author added successfully")
+      toast.success(t("Author added successfully"))
       setNewAuthor({ title: "" })
     } catch (error:any) {
       toast.error(error.message)
@@ -99,7 +103,7 @@ export default function AuthorsPage() {
       }
 
       setAuthors(authors.filter((author) => author._id !== id))
-      toast.success("Author deleted successfully")
+      toast.success(t("Author deleted successfully"))
     } catch (error:any) {
       toast.error(error.message)
       console.error(error)
@@ -117,13 +121,13 @@ export default function AuthorsPage() {
     <div className="space-y-6 p-6">
       <ToastContainer position="top-right" autoClose={3000} />
 
-      <h1 className="text-3xl font-bold">Authors</h1>
+      <h1 className="text-3xl font-bold">{t("Authors")}</h1>
 
       {/* Search bar */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Search authors..."
+          placeholder={t("Search authors...")}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-10"
@@ -133,25 +137,25 @@ export default function AuthorsPage() {
       {/* Add author form */}
       <div className="flex space-x-4">
         <Input
-          placeholder="Author title"
+          placeholder={t("Author title")}
           value={newAuthor.title}
           onChange={(e) => setNewAuthor({ title: e.target.value })}
         />
         <Button onClick={addAuthor} disabled={isLoading}>
           <PlusCircle className="mr-2 h-4 w-4" />
-          Add Author
+          {t(" Add Author")}
         </Button>
       </div>
 
       {/* Authors table */}
       {isLoading ? (
-        <div className="text-center py-8">Loading authors...</div>
+        <div className="text-center py-8">{("Loading authors...")}</div>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Title</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className={isRTL ? "text-right" : "text-left"}>{t("Title")}</TableHead>
+              <TableHead className="text-right">{t("Actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -168,7 +172,7 @@ export default function AuthorsPage() {
                   <TableCell className="text-right">
                     <Button variant="ghost" size="sm" onClick={() => deleteAuthor(author._id)} disabled={isLoading}>
                       <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
+                      {t("Delete")}
                     </Button>
                   </TableCell>
                 </TableRow>

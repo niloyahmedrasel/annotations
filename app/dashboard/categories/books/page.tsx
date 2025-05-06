@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { PlusCircle, Trash2, Search } from "lucide-react"
 import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
+import { useTranslation } from "react-i18next"
 
 interface BookCategory {
   _id: string
@@ -18,6 +19,9 @@ export default function BookCategoriesPage() {
   const [newBookCategory, setNewBookCategory] = useState({ title: "" })
   const [searchQuery, setSearchQuery] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+
+  const {t, i18n} = useTranslation()
+  const isRTL = i18n.language === "ar"
  
   const user = sessionStorage.getItem("user")
   const token = user ? JSON.parse(user).token : null
@@ -41,7 +45,7 @@ export default function BookCategoriesPage() {
       
       setBookCategories(data.bookCategories)
     } catch (error:any) {
-      toast.error("Failed to load book categories")
+      toast.error(t("Failed to load book categories"))
       console.error(error.message)
     } finally {
       setIsLoading(false)
@@ -50,7 +54,7 @@ export default function BookCategoriesPage() {
 
   const addBookCategory = async () => {
     if (newBookCategory.title.trim() === "") {
-      toast.warning("Book category title cannot be empty")
+      toast.warning(t("Book category title cannot be empty"))
       return
     }
 
@@ -71,7 +75,7 @@ export default function BookCategoriesPage() {
       }
 
       fetchBookCategories()
-      toast.success("Book category added successfully")
+      toast.success(t("Book category added successfully"))
       setNewBookCategory({ title: "" })
     } catch (error:any) {
       toast.error(error.message)
@@ -97,7 +101,7 @@ export default function BookCategoriesPage() {
       }
 
       setBookCategories(bookCategories.filter((category) => category._id !== id))
-      toast.success("Book category deleted successfully")
+      toast.success(t("Book category deleted successfully"))
     } catch (error:any) {
       toast.error(error.message)
       console.error(error)
@@ -115,12 +119,12 @@ export default function BookCategoriesPage() {
     <div className="space-y-6 p-6">
       <ToastContainer position="top-right" autoClose={3000} />
 
-      <h1 className="text-3xl font-bold">Book Categories</h1>
+      <h1 className="text-3xl font-bold">{t("Book Categories")}</h1>
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Search book categories..."
+          placeholder={t("Search book categories...")}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-10"
@@ -129,24 +133,24 @@ export default function BookCategoriesPage() {
 
       <div className="flex space-x-4">
         <Input
-          placeholder="Book category title"
+          placeholder={t("Book category title")}
           value={newBookCategory.title}
           onChange={(e) => setNewBookCategory({ title: e.target.value })}
         />
         <Button onClick={addBookCategory} disabled={isLoading}>
           <PlusCircle className="mr-2 h-4 w-4" />
-          Add Category
+          {t("Add Category")}
         </Button>
       </div>
 
       {isLoading ? (
-        <div className="text-center py-8">Loading book categories...</div>
+        <div className="text-center py-8">{t("Loading book categories...")}</div>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Title</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className={isRTL?"text-right":""}>{t("Title")}</TableHead>
+              <TableHead className="text-right">{t("Actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -163,7 +167,7 @@ export default function BookCategoriesPage() {
                   <TableCell className="text-right">
                     <Button variant="ghost" size="sm" onClick={() => deleteBookCategory(category._id)} disabled={isLoading}>
                       <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
+                      {t("Delete")}
                     </Button>
                   </TableCell>
                 </TableRow>

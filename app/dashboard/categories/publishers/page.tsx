@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { PlusCircle, Trash2, Search } from "lucide-react"
 import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
+import { useTranslation } from "react-i18next"
 
 interface Publisher {
   _id: string
@@ -18,6 +19,9 @@ export default function PublishersPage() {
   const [newPublisher, setNewPublisher] = useState({ title: "" })
   const [searchQuery, setSearchQuery] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+
+  const {t,i18n} = useTranslation()
+  const isRTL = i18n.language === "ar"
  
   const user = sessionStorage.getItem("user")
   const token = user ? JSON.parse(user).token : null
@@ -40,7 +44,7 @@ export default function PublishersPage() {
       const data = await response.json()
       setPublishers(data.publishers)
     } catch (error) {
-      toast.error("Failed to load publishers")
+      toast.error(t("Failed to load publishers"))
       console.error(error)
     } finally {
       setIsLoading(false)
@@ -49,7 +53,7 @@ export default function PublishersPage() {
 
   const addPublisher = async () => {
     if (newPublisher.title.trim() === "") {
-      toast.warning("Publisher title cannot be empty")
+      toast.warning(t("Publisher title cannot be empty"))
       return
     }
 
@@ -69,10 +73,10 @@ export default function PublishersPage() {
       }
 
       fetchPublishers()
-      toast.success("Publisher added successfully")
+      toast.success(t("Publisher added successfully"))
       setNewPublisher({ title: "" })
     } catch (error) {
-      toast.error("Failed to add publisher")
+      toast.error(t("Failed to add publisher"))
       console.error(error)
     } finally {
       setIsLoading(false)
@@ -112,12 +116,12 @@ export default function PublishersPage() {
     <div className="space-y-6 p-6">
       <ToastContainer position="top-right" autoClose={3000} />
 
-      <h1 className="text-3xl font-bold">Publishers</h1>
+      <h1 className="text-3xl font-bold">{t("Publishers")}</h1>
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Search publishers..."
+          placeholder={t("Search publishers...")}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-10"
@@ -126,24 +130,24 @@ export default function PublishersPage() {
 
       <div className="flex space-x-4">
         <Input
-          placeholder="Publisher title"
+          placeholder={t("Publisher title")}
           value={newPublisher.title}
           onChange={(e) => setNewPublisher({ title: e.target.value })}
         />
         <Button onClick={addPublisher} disabled={isLoading}>
           <PlusCircle className="mr-2 h-4 w-4" />
-          Add Publisher
+          {t("Add Publisher")}
         </Button>
       </div>
 
       {isLoading ? (
-        <div className="text-center py-8">Loading publishers...</div>
+        <div className="text-center py-8">{t("Loading publishers...")}</div>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Title</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className={isRTL ? "text-right" : "text-left"}>{t("Title")}</TableHead>
+              <TableHead className="text-right">{t("Actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -160,7 +164,7 @@ export default function PublishersPage() {
                   <TableCell className="text-right">
                     <Button variant="ghost" size="sm" onClick={() => deletePublisher(publisher._id)} disabled={isLoading}>
                       <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
+                      {t("Delete")}
                     </Button>
                   </TableCell>
                 </TableRow>
